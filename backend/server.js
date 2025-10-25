@@ -1,11 +1,12 @@
 import express from "express"
+import { ObjectId } from "mongodb"
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv"
 import mongoose from "mongoose";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
-import  { connection, collectionName } from "./dbconfig.js"
+import  { connection } from "./dbconfig.js"
 dotenv.config();
 const app = express();
 const port = 5000;
@@ -141,10 +142,166 @@ app.post("/user-login", async (req,res)=>{
     }
 })
 
-// Admin dashboard
-app.post("/admin-dashboard",(req,res)=>{
-    
-})
+// Admin dashboard mcq section
+app.post("/add-qns", verifyJWTToken, async (req, res) => {
+  try {
+    const { description, options, userId } = req.body;
+
+    if (!description?.trim() || !Array.isArray(options) || options.length !== 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Question description and exactly four options are required",
+      });
+    }
+
+    const cleanOptions = options.map(opt => opt.trim()).filter(opt => opt !== "");
+    if (cleanOptions.length !== 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide four valid non-empty options",
+      });
+    }
+
+    const qn = {
+      description: description.trim(),
+      options: cleanOptions,
+      userId: new ObjectId(req.user._id),
+      createdAt: new Date(),
+    };
+
+    const db = await connection();
+    const collection = db.collection("questions");
+    const result = await collection.insertOne(qn);
+
+    if (result.acknowledged) {
+      return res.status(200).json({
+        success: true,
+        message: "Question added successfully",
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Error adding question",
+      });
+    }
+  } catch (error) {
+    console.error("Error adding question:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while adding question",
+    });
+  }
+});
+
+app.get("/questions", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = await db.collection("questions");
+
+    // Fetch questions created by the logged-in user
+    const questions = await collection
+      .find({ userId: new ObjectId(req.user._id) })
+      .toArray();
+
+    res.status(200).json({
+      success: true,
+      message: "Questions fetched successfully",
+      questions,
+    });
+  } catch (err) {
+    console.error("Error fetching questions:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server Error while fetching questions",
+      error: err.message,
+    });
+  }
+});
+
+app.get("/question/:id", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = db.collection("questions");
+    const { id } = req.params;
+
+    const question = await collection.findOne({
+      _id: new ObjectId(id),
+      userId: new ObjectId(req.user._id),
+    });
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Question fetched successfully",
+      question,
+    });
+  } catch (err) {
+    console.error("Error fetching question:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
+  }
+});
+
+app.put("/update-question/:id", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = db.collection("questions");
+    const { id } = req.params;
+    const { description, options } = req.body;
+
+    const update = { $set: { description, options } };
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id), userId: new ObjectId(req.user._id) },
+      update
+    );
+
+    if (result.modifiedCount > 0) {
+      res.status(200).json({
+        success: true,
+        message: "Question updated successfully",
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: "Question not found or no changes made",
+      });
+    }
+  } catch (error) {
+    console.error("Error updating question:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
+function verifyJWTToken(req, res, next) {
+  console.log("Cookies received:", req.cookies);
+  const token = req.cookies["token"];
+  if (!token) {
+    return res.status(401).json({ success: false, message: "No token found" });
+  }
+
+  jwt.verify(token, "Google", (error, decoded) => {
+    if (error) {
+      return res.status(403).json({ message: "Invalid token", success: false });
+    }
+
+    req.user = decoded;
+    next();
+  });
+}
 app.listen(port,(req,res)=>{
     console.log(`app is listening on port ${port}`)
 })
