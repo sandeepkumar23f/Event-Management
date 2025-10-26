@@ -7,8 +7,7 @@ export default function CreateEvent() {
   const [eventDate, setEventDate] = useState("");
   const [capacity, setCapacity] = useState("");
 
-  const navigate = useNavigate(); // useNavigate hook
-
+  const navigate = useNavigate(); 
   const handleSubmit = async (e) => {
     e.preventDefault();
 

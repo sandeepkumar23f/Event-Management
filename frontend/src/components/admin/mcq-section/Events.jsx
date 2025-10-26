@@ -30,12 +30,10 @@ export default function AdminEvents() {
   };
 
   // Delete Event
-  // Delete Event
   const deleteEvent = async (eventId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
 
-    console.log("Deleting event:", eventId); // Debugging
-
+    console.log("Deleting event:", eventId); 
     try {
       const res = await fetch(`http://localhost:5000/delete-event/${eventId}`, {
         method: "DELETE",

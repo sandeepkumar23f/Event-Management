@@ -392,8 +392,14 @@ app.get("/events", verifyJWTToken, async (req, res) => {
   try {
     const db = await connection();
     const collection = db.collection("events");
-
-    const events = await collection.find({}).toArray();
+    const currentDate = new Date()
+    const events = await collection
+    .find({
+      createdBy: new ObjectId(req.user._id),
+      date: { $gte: currentDate}
+    })
+    .sort({ date: 1})
+    .toArray();
 
     res.status(200).json({
       success: true,
@@ -449,7 +455,7 @@ app.put("/update-event/:id", verifyJWTToken, async (req, res) => {
     const updateFields = {};
     if (name) updateFields.name = name;
     if (description) updateFields.description = description;
-    if (date) updateFields.date = date;
+    if (date) updateFields.date = new Date(date);
     if (capacity) updateFields.capacity = parseInt(capacity);
 
     const result = await collection.updateOne(
@@ -509,6 +515,43 @@ app.delete("/delete-event/:id", verifyJWTToken, async (req, res) => {
     });
   }
 });
+
+// user routes 
+app.get("/explore-events", async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = db.collection("events");
+
+    const currentDate = new Date();
+
+    // Fetch upcoming events, sorted by date
+    const events = await collection
+      .find({ date: { $gte: currentDate } })
+      .sort({ date: 1 })
+      .toArray();
+
+    if (events.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No upcoming events found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Events fetched successfully",
+      events,
+    });
+  } catch (error) {
+    console.error("Error fetching events:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error, please try again later",
+      error: error.message,
+    });
+  }
+});
+
 
 function verifyJWTToken(req, res, next) {
   console.log("Cookies received:", req.cookies);
