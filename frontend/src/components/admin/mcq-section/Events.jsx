@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function AdminEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState(null); // For inline editing
-
+  const navigate = useNavigate();
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -31,41 +31,41 @@ export default function AdminEvents() {
 
   // Delete Event
   // Delete Event
-const deleteEvent = async (eventId) => {
-  if (!window.confirm("Are you sure you want to delete this event?")) return;
+  const deleteEvent = async (eventId) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
 
-  console.log("Deleting event:", eventId); // Debugging
+    console.log("Deleting event:", eventId); // Debugging
 
-  try {
-    const res = await fetch(`http://localhost:5000/delete-event/${eventId}`, {
-      method: "DELETE",
-      credentials: "include", // important if backend uses JWT in cookies
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const res = await fetch(`http://localhost:5000/delete-event/${eventId}`, {
+        method: "DELETE",
+        credentials: "include", // important if backend uses JWT in cookies
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    // Check if response is ok
-    if (!res.ok) {
-      console.error("Server returned error:", res.status, res.statusText);
-      const errorData = await res.json().catch(() => ({}));
-      alert(errorData.message || "Failed to delete event");
-      return;
+      // Check if response is ok
+      if (!res.ok) {
+        console.error("Server returned error:", res.status, res.statusText);
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData.message || "Failed to delete event");
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Event deleted successfully!");
+        fetchEvents(); // Refresh events
+      } else {
+        alert(data.message || "Failed to delete event");
+      }
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      alert("Server error, please try again later");
     }
-
-    const data = await res.json();
-
-    if (data.success) {
-      alert("Event deleted successfully!");
-      fetchEvents(); // Refresh events
-    } else {
-      alert(data.message || "Failed to delete event");
-    }
-  } catch (err) {
-    console.error("Error deleting event:", err);
-    alert("Server error, please try again later");
-  }
-};
+  };
 
   // Update Event
   const updateEvent = async (eventId, updatedData) => {
@@ -134,7 +134,9 @@ const deleteEvent = async (eventId) => {
                     type="number"
                     defaultValue={event.capacity}
                     className="w-full p-2 border rounded mb-2"
-                    onChange={(e) => (event.capacity = parseInt(e.target.value))}
+                    onChange={(e) =>
+                      (event.capacity = parseInt(e.target.value))
+                    }
                   />
                   <div className="flex gap-2">
                     <button
@@ -167,6 +169,13 @@ const deleteEvent = async (eventId) => {
                   </p>
 
                   <div className="mt-3 flex gap-3">
+                    <button
+                      onClick={() => navigate(`/questions/${event._id}`)}
+                      className="bg-green-500 text-white px-4 py-1 rounded hover:bg-yellow-600"
+                    >
+                      Questions
+                    </button>
+
                     <button
                       onClick={() => setEditingEvent(event._id)}
                       className="bg-yellow-500 text-white px-4 py-1 rounded hover:bg-yellow-600"

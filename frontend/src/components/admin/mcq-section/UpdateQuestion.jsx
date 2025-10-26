@@ -1,98 +1,125 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function UpdateQuestion() {
-  const [questionData, setQuestionData] = useState({
+  const { id: questionId, eventId } = useParams();
+  const [formData, setFormData] = useState({
     description: "",
     options: ["", "", "", ""],
+    correctOption: "",
   });
 
   const navigate = useNavigate();
-  const { id } = useParams();
 
+  // Fetch the existing question data
   useEffect(() => {
-    const getQuestion = async () => {
+    const fetchQuestion = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/question/${id}`, {
-          credentials: "include",
-        });
+        const res = await fetch(
+          `http://localhost:5000/question/${questionId}`,
+          { credentials: "include" }
+        );
         const data = await res.json();
-
-        if (data.success && data.question) {
-          setQuestionData({
+        if (data.success) {
+          setFormData({
             description: data.question.description,
             options: data.question.options,
+            correctOption: data.question.correctOption,
           });
         } else {
-          alert(data.message || "Failed to fetch question details");
+          alert(data.message || "Failed to fetch question");
         }
       } catch (err) {
-        console.error("Error fetching question:", err);
-        alert("Error fetching question details");
+        console.error(err);
+        alert("Server error, try again later");
       }
     };
 
-    getQuestion();
-  }, [id]);
+    if (questionId) fetchQuestion();
+  }, [questionId]);
 
   const handleDescriptionChange = (e) => {
-    setQuestionData({ ...questionData, description: e.target.value });
+    setFormData({ ...formData, description: e.target.value });
   };
 
   const handleOptionChange = (index, value) => {
-    const newOptions = [...questionData.options];
+    const newOptions = [...formData.options];
     newOptions[index] = value;
-    setQuestionData({ ...questionData, options: newOptions });
+    setFormData({ ...formData, options: newOptions });
   };
 
-  const updateQuestion = async () => {
-    if (!questionData.description.trim() || questionData.options.some((opt) => !opt.trim())) {
-      alert("Please fill in the question description and all four options");
+  const handleCorrectOptionChange = (e) => {
+    setFormData({ ...formData, correctOption: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.description.trim()) {
+      alert("Question description is required");
+      return;
+    }
+
+    if (formData.options.some((opt) => !opt.trim())) {
+      alert("All four options are required");
+      return;
+    }
+
+    if (!formData.correctOption) {
+      alert("Please select the correct option");
       return;
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/update-question/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(questionData),
-      });
+      const res = await fetch(
+        `http://localhost:5000/update-question/${questionId}`, 
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...formData, eventId }), 
+        }
+      );
 
-      const data = await res.json();
+      const result = await res.json();
 
-      if (res.ok && data.success) {
+      if (result.success) {
         alert("Question updated successfully!");
-        navigate("/questions");
+        navigate(`/questions/${eventId}`);
       } else {
-        alert(data.message || "Update failed");
+        alert(result.message || "Error updating question");
       }
     } catch (err) {
       console.error("Error updating question:", err);
-      alert("Server error while updating question");
+      alert("Server error, try again later");
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-blue-50 px-4">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg">
-        <h1 className="text-3xl font-bold text-center text-blue-700 mb-6">
+    <div className="min-h-screen bg-blue-50 flex justify-center items-center">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg"
+      >
+        <h2 className="text-2xl font-semibold mb-4 text-center text-blue-700">
           Update Question
-        </h1>
+        </h2>
 
+        {/* Question description */}
         <div className="mb-4">
-          <label className="block font-semibold mb-1">Question Description</label>
+          <label className="block font-medium mb-1">Question Description</label>
           <textarea
-            value={questionData.description}
+            value={formData.description}
             onChange={handleDescriptionChange}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Enter the question..."
+            placeholder="Enter question..."
           />
         </div>
 
-        {questionData.options.map((opt, index) => (
+        {/* Options */}
+        {formData.options.map((opt, index) => (
           <div key={index} className="mb-3">
-            <label className="block font-semibold mb-1">Option {index + 1}</label>
+            <label className="block font-medium mb-1">Option {index + 1}</label>
             <input
               type="text"
               value={opt}
@@ -103,13 +130,26 @@ export default function UpdateQuestion() {
           </div>
         ))}
 
+        {/* Correct option selection */}
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Correct Option (A-D)</label>
+          <input
+            type="text"
+            value={formData.correctOption}
+            onChange={handleCorrectOptionChange}
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter correct option (A, B, C, or D)"
+            maxLength={1}
+          />
+        </div>
+
         <button
-          onClick={updateQuestion}
+          type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
         >
           Update Question
         </button>
-      </div>
+      </form>
     </div>
   );
 }

@@ -140,14 +140,22 @@ app.post("/user-login", async (req,res)=>{
 })
 
 // Admin dashboard mcq section
-app.post("/add-qns", verifyJWTToken, async (req, res) => {
+app.post("/add-question/:eventId", verifyJWTToken, async (req, res) => {
   try {
-    const { description, options, userId } = req.body;
+    const { description, options, correctOption } = req.body;
+    const { eventId } = req.params;
 
     if (!description?.trim() || !Array.isArray(options) || options.length !== 4) {
       return res.status(400).json({
         success: false,
         message: "Question description and exactly four options are required",
+      });
+    }
+
+    if (!correctOption?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Correct option is required",
       });
     }
 
@@ -159,10 +167,24 @@ app.post("/add-qns", verifyJWTToken, async (req, res) => {
       });
     }
 
+    const validLabels = ["A", "B", "C", "D"];
+    const isValidCorrectOption =
+      validLabels.includes(correctOption.toUpperCase()) ||
+      cleanOptions.includes(correctOption);
+
+    if (!isValidCorrectOption) {
+      return res.status(400).json({
+        success: false,
+        message: "Correct option must be one of A, B, C, or D (or match an option text)",
+      });
+    }
+
     const qn = {
       description: description.trim(),
       options: cleanOptions,
+      correctOption: correctOption.trim().toUpperCase(),
       userId: new ObjectId(req.user._id),
+      eventId: new ObjectId(eventId),
       createdAt: new Date(),
     };
 
@@ -190,14 +212,18 @@ app.post("/add-qns", verifyJWTToken, async (req, res) => {
   }
 });
 
-app.get("/questions", verifyJWTToken, async (req, res) => {
+
+app.get("/questions/:eventId", verifyJWTToken, async (req, res) => {
   try {
     const db = await connection();
     const collection = await db.collection("questions");
+    const { eventId } = req.params;
 
-    // Fetch questions created by the logged-in user
     const questions = await collection
-      .find({ userId: new ObjectId(req.user._id) })
+      .find({ 
+        userId: new ObjectId(req.user._id),
+        eventId: new ObjectId(eventId)
+      })
       .toArray();
 
     res.status(200).json({
@@ -209,11 +235,13 @@ app.get("/questions", verifyJWTToken, async (req, res) => {
     console.error("Error fetching questions:", err);
     res.status(500).json({
       success: false,
-      message: "Server Error while fetching questions",
+      message: "Server error while fetching questions",
       error: err.message,
     });
   }
 });
+
+
 
 app.get("/question/:id", verifyJWTToken, async (req, res) => {
   try {
@@ -248,18 +276,20 @@ app.get("/question/:id", verifyJWTToken, async (req, res) => {
   }
 });
 
-app.put("/update-question/:id", verifyJWTToken, async (req, res) => {
+app.put("/update-question/:questionId", verifyJWTToken, async (req, res) => {
   try {
     const db = await connection();
     const collection = db.collection("questions");
-    const { id } = req.params;
-    const { description, options } = req.body;
-
-    const update = { $set: { description, options } };
+    const { questionId } = req.params;
+    const { description, options, correctOption, eventId } = req.body;
 
     const result = await collection.updateOne(
-      { _id: new ObjectId(id), userId: new ObjectId(req.user._id) },
-      update
+      {
+        _id: new ObjectId(questionId),
+        userId: new ObjectId(req.user._id),
+        eventId: new ObjectId(eventId),
+      },
+      { $set: { description, options, correctOption } }
     );
 
     if (result.modifiedCount > 0) {
@@ -283,15 +313,17 @@ app.put("/update-question/:id", verifyJWTToken, async (req, res) => {
   }
 });
 
-app.delete("/delete/:id", verifyJWTToken , async(req,res)=>{
+
+app.delete("/delete/:id/:eventId", verifyJWTToken , async(req,res)=>{
   try{
     const db = await connection();
     const collection = await db.collection("questions")
-    const { id }=req.params;
+    const { id , eventId}=req.params;
 
     const result = await collection.deleteOne({
       _id: new ObjectId(id),
-      userId: new ObjectId(req.user._id)
+      userId: new ObjectId(req.user._id),
+      eventId: new ObjectId(eventId)
     });
 
     if(result.deletedCount > 0){

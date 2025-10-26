@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function AddQuestion() {
+  const { eventId } = useParams();
   const [formData, setFormData] = useState({
     description: "",
     options: ["", "", "", ""],
+    correctOption: "", 
   });
+
   const navigate = useNavigate();
 
   const handleDescriptionChange = (e) => {
@@ -18,10 +21,13 @@ export default function AddQuestion() {
     setFormData({ ...formData, options: newOptions });
   };
 
+  const handleCorrectOptionChange = (e) => {
+    setFormData({ ...formData, correctOption: e.target.value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // validation
     if (!formData.description.trim()) {
       alert("Question description is required");
       return;
@@ -32,19 +38,27 @@ export default function AddQuestion() {
       return;
     }
 
+    if (!formData.correctOption) {
+      alert("Please select the correct option");
+      return;
+    }
+
     try {
-      const response = await fetch("http://localhost:5000/add-qns", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `http://localhost:5000/add-question/${eventId}`, 
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const result = await response.json();
 
       if (result.success) {
-        alert(" Question added successfully!");
-        navigate("/questions");
+        alert("Question added successfully!");
+        navigate(`/questions/${eventId}`); 
       } else {
         alert(result.message || "Error adding question");
       }
@@ -78,9 +92,7 @@ export default function AddQuestion() {
         {/* Options */}
         {formData.options.map((opt, index) => (
           <div key={index} className="mb-3">
-            <label className="block font-medium mb-1">
-              Option {index + 1}
-            </label>
+            <label className="block font-medium mb-1">Option {index + 1}</label>
             <input
               type="text"
               value={opt}
@@ -90,6 +102,19 @@ export default function AddQuestion() {
             />
           </div>
         ))}
+
+        {/* Correct option selection */}
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Correct Option (A-D)</label>
+          <input
+            type="text"
+            value={formData.correctOption}
+            onChange={handleCorrectOptionChange}
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="Enter correct option (A, B, C, or D)"
+            maxLength={1}
+          />
+        </div>
 
         <button
           type="submit"

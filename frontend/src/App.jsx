@@ -37,9 +37,9 @@ function App() {
         <Route path="/user-login" element={<UserLogin setLogin={setUserLogin}/>}/>
         <Route path="/user-dashboard" element={<ProtectedUser><UserDashboard/></ProtectedUser>} />
         <Route path="/admin-dashboard" element={<ProtectedAdmin><AdminDashboard/></ProtectedAdmin>} />
-        <Route path="/add-qns" element={<ProtectedAdmin><AddQuestion/></ProtectedAdmin>} />
-        <Route path="/questions" element={<ProtectedAdmin><AdminQuestions/></ProtectedAdmin>} />
-        <Route path="/update-question/:id" element={<ProtectedAdmin><UpdateQuestion/></ProtectedAdmin>} />
+        <Route path="/add-question/:eventId" element={<ProtectedAdmin><AddQuestion/></ProtectedAdmin>} />
+        <Route path="/questions/:eventId" element={<ProtectedAdmin><AdminQuestions/></ProtectedAdmin>} />
+        <Route path="/update-question/:id/:eventId" element={<ProtectedAdmin><UpdateQuestion/></ProtectedAdmin>} />
         <Route path="/create-mcq-event" element={<ProtectedAdmin><CreateEvent/></ProtectedAdmin>} />
         <Route path="/events" element={<ProtectedAdmin><AdminEvents/></ProtectedAdmin>} />
       </Routes>
