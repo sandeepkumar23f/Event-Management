@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function UserNavbar({ login, setLogin }) {
+export default function UserNavbar({ login, setUserLogin }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const logout = () => {
     localStorage.removeItem("user-login");
-    setLogin(false);
+    setUserLogin(false);
     navigate("/user-login");
   };
 

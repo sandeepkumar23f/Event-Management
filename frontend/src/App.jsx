@@ -11,9 +11,11 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import ProtectedAdmin from "./components/admin/ProtectedAdmin";
 import ProtectedUser from "./components/user/ProtectedUser";
 import "./App.css";
-import AddQuestion from "./components/admin/AddQuestion";
-import AdminQuestions from "./components/admin/AdminQuestions";
-import UpdateQuestion from "./components/admin/UpdateQuestion";
+import AddQuestion from "./components/admin/mcq-section/AddQuestion";
+import AdminQuestions from "./components/admin/mcq-section/AdminQuestions";
+import UpdateQuestion from "./components/admin/mcq-section/UpdateQuestion";
+import CreateEvent from "./components/admin/mcq-section/CreateEvent";
+import AdminEvents from "./components/admin/mcq-section/Events";
 function App() {
   const [adminlogin, setAdminLogin] = useState(!!localStorage.getItem("admin-login"));
   const [userlogin,setUserLogin] = useState(!!localStorage.getItem("user-login"))
@@ -38,6 +40,8 @@ function App() {
         <Route path="/add-qns" element={<ProtectedAdmin><AddQuestion/></ProtectedAdmin>} />
         <Route path="/questions" element={<ProtectedAdmin><AdminQuestions/></ProtectedAdmin>} />
         <Route path="/update-question/:id" element={<ProtectedAdmin><UpdateQuestion/></ProtectedAdmin>} />
+        <Route path="/create-mcq-event" element={<ProtectedAdmin><CreateEvent/></ProtectedAdmin>} />
+        <Route path="/events" element={<ProtectedAdmin><AdminEvents/></ProtectedAdmin>} />
       </Routes>
     </>
   );

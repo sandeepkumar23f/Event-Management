@@ -17,9 +17,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser())
 
-app.get("/",(req,res)=>{
-    res.send("Welcome to event management API")
-})
+
 
 // Admin signup 
 app.post("/admin-signup",async (req,res)=>{
@@ -28,25 +26,24 @@ app.post("/admin-signup",async (req,res)=>{
         const db = await connection();
         const collection = await db.collection("admins");
         const result = await collection.insertOne(adminData);
-        if(result){
-            const tokenData = { _id: result.insertedId, email: adminData.email};
-            jwt.sign(tokenData,"Google", {expiresIn: "5d"},(error,token)=>{
-                if(error)
-                    return res.status(500).send({ success: false, message: "JWT error"});
-                res.cookie('token',token,{
-                        httpOnly: true,
-                        sameSite: "lax",
-                        secure: false,
-                        expiresIn: 5 * 24 * 60 * 60 * 1000
-                    });
-                    res.send({success: true, message: "Admin Signup done"})
-            });
-        } else{
-            res.send({
-                success: false,
-                message: "Signup failed"
-            })
-        }
+if (result.acknowledged) {
+  const tokenData = { _id: result.insertedId.toString(), email: adminData.email };
+
+  jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+    if (error)
+      return res.status(500).send({ success: false, message: "JWT error" });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    });
+
+    res.send({ success: true, message: "Admin Signup done" });
+  });
+}
+
     }
 })
 
@@ -57,24 +54,24 @@ app.post("/user-signup", async(req,res)=>{
         const db = await connection();
         const collection = await db.collection("users");
         const result = await collection.insertOne(userData);
-        if(result){
-            const tokenData = { _id: result.insertedId,email: userData.email};
-            jwt.sign(tokenData,"Google",{expiresIn: "5d"},(error,token)=>{
-                if(error) return res.status(500).send({success: false, message: "JWT error"});
-                res.cookie('token',token,{
-                    httpOnly: true,
-                    secure: false,
-                    sameSite: "lax",
-                    expiresIn: 5 * 24 * 60 * 60 * 1000
-                });
-                res.send({ success: true, message: "User Signup done"})
-            });
-        } else{
-            res.send({
-                success: false,
-                message: "User signup failed"
-            })
-        }
+if (result.acknowledged) {
+  const tokenData = { _id: result.insertedId.toString(), email: userData.email };
+
+  jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+    if (error)
+      return res.status(500).send({ success: false, message: "JWT error" });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    });
+
+    res.send({ success: true, message: "User Signup done" });
+  });
+}
+
     }
 });
 
@@ -89,8 +86,8 @@ app.post("/admin-login",async (req,res)=>{
             password: adminData.password
         });
         if(result){
-            const tokenData = { _id: result._id,email: result.password};
-            jwt.sign(tokenData,"Google",{expiresIn: "5d"},(error,token)=>{
+          const tokenData = { _id: result._id.toString(), email: result.email };
+          jwt.sign(tokenData,"Google",{expiresIn: "5d"},(error,token)=>{
                 if(error) 
                     return res.status(500).send({success: false, message: "Jwt eerror"});
                 res.cookie('token',token,{
@@ -121,7 +118,7 @@ app.post("/user-login", async (req,res)=>{
             password: userData.password
         });
         if(result){
-            const tokenData = { _id: result._id, email: result.email};
+            const tokenData = { _id: result._id.toString(), email: result.email };
             jwt.sign(tokenData,"Google",{expiresIn: "5d"}, (error,token)=>{
                 if(error)
                     return res.status(500).send({ success: false, message: "User Login failed"})
@@ -282,6 +279,201 @@ app.put("/update-question/:id", verifyJWTToken, async (req, res) => {
       success: false,
       message: "Server error",
       error: error.message,
+    });
+  }
+});
+
+app.delete("/delete/:id", verifyJWTToken , async(req,res)=>{
+  try{
+    const db = await connection();
+    const collection = await db.collection("questions")
+    const { id }=req.params;
+
+    const result = await collection.deleteOne({
+      _id: new ObjectId(id),
+      userId: new ObjectId(req.user._id)
+    });
+
+    if(result.deletedCount > 0){
+      res.status(200).send({
+        success: true,
+        message: "Question deleted successfully"
+      })
+    } else{
+      res.status(404).send({
+        success: false,
+        message: "Question not found"
+      })
+    } 
+  } catch(error){
+    console.error("Error deleting Question: ", error.message)
+    res.status(500).send({
+      success: false,
+      message: "Server error please try again later"
+    })
+  }
+})
+
+// create mcq event
+app.post("/create-mcq-event", verifyJWTToken, async(req,res)=>{
+  try{
+    const { name, description, date, capacity} = req.body;
+    if(!name || !description || !date || !capacity){
+      res.status(400).send({
+        success: false,
+        message: "All fields are required"
+      })
+    } 
+    const db = await connection();
+    const collection = await db.collection("events")
+    const mcq = {
+      name,
+      description,
+      date: new Date(date),
+      capacity: parseInt(capacity),
+      createdBy: new ObjectId(req.user._id),
+      createdAt: new Date()
+    }
+    const result = await collection.insertOne(mcq)
+    if(result.acknowledged){
+      return res.status(200).json({
+        success: true,
+        message: "Event added successfully",
+        result
+      })
+    } else{
+      return res.status(400).json({
+        success: false,
+        message: "Error adding Event"
+      })
+    } 
+  } catch(error){
+    console.error("Error adding Event",error.message)
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    })
+  }
+})
+// get mcq events
+app.get("/events", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = db.collection("events");
+
+    const events = await collection.find({}).toArray();
+
+    res.status(200).json({
+      success: true,
+      message: "Events fetched successfully",
+      events,
+    });
+  } catch (error) {
+    console.error("Error fetching events:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error, please try again later",
+    });
+  }
+});
+// events
+app.get("/events/:id", verifyJWTToken, async (req,res)=>{
+  try{
+    const db = await connection();
+    const collection  = await db.collection("events")
+    const { id } = req.params;
+    const event = await collection.findOne({
+      _id: new ObjectId(id),
+      createdBy: new ObjectId(req.user._id),
+    });
+    if(!event){
+      return res.status(400).json({
+        success: false,
+        message: "Event not found"
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Event fetched successfully",
+      event
+    })
+  } catch(error){
+    console.error("Error fetching Event", error.message)
+    res.status(500).json({
+      success: false,
+      message: "Server error please try again later "
+    })
+  }
+})
+// update event data
+app.put("/update-event/:id", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = db.collection("events");
+    const { id } = req.params;
+    const { name, description, date, capacity } = req.body;
+
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (description) updateFields.description = description;
+    if (date) updateFields.date = date;
+    if (capacity) updateFields.capacity = parseInt(capacity);
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id), createdBy: new ObjectId(req.user._id) },
+      { $set: updateFields }
+    );
+
+    if (result.modifiedCount > 0) {
+      res.status(200).json({
+        success: true,
+        message: "Event updated successfully",
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: "Event not found or no changes made",
+      });
+    }
+  } catch (error) {
+    console.error("Error updating event:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error, please try again later",
+    });
+  }
+});
+// delete event
+app.delete("/delete-event/:id", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = db.collection("events");
+    const { id } = req.params;
+
+    console.log("Deleting event ID:", id, "User ID:", req.user._id);
+
+    const result = await collection.deleteOne({
+      _id: new ObjectId(id),
+      createdBy: new ObjectId(req.user._id),
+    });
+
+    if (result.deletedCount > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Event deleted successfully",
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found or you are not authorized",
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting event:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error, please try again later",
     });
   }
 });

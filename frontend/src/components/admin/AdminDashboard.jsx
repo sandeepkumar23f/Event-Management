@@ -72,7 +72,7 @@ export default function AdminDashboard() {
               Create and manage multiple-choice questions for events.
             </p>
             <button
-              onClick={() => navigate("/mcq-section")}
+              onClick={() => navigate("/create-mcq-event")}
               className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition"
             >
               Manage MCQs
