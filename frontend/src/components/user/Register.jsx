@@ -13,7 +13,8 @@ export default function RegisterPage() {
     const fetchEvent = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:5000/events/${id}`, {
+        const res = await fetch(`http://localhost:5000/explore-events/${id}`, {
+          credentials: "include",
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

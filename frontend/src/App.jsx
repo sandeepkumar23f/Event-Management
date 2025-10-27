@@ -46,7 +46,7 @@ function App() {
         <Route path="/events" element={<ProtectedAdmin><AdminEvents/></ProtectedAdmin>} />
         {/* user public Routes */}
         <Route path="/explore-events" element={<ProtectedUser><ExploreEvents/></ProtectedUser>} />
-        <Route path="/register-event" element={<ProtectedUser><Register/></ProtectedUser>} />
+        <Route path="/register-event/:id" element={<ProtectedUser><Register/></ProtectedUser>} />
       </Routes>
     </>
   );

@@ -564,6 +564,26 @@ app.get("/explore-events", async (req, res) => {
     });
   }
 });
+// explore events by userId
+app.get("/explore-events/:id", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const collection = db.collection("events");
+    const { id } = req.params;
+
+    const event = await collection.findOne({ _id: new ObjectId(id) });
+    if (!event)
+      return res.status(404).json({ success: false, message: "Event not found" });
+
+    res.status(200).json({ success: true, event });
+  } catch (error) {
+    console.error("Error fetching Event", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error please try again later",
+    });
+  }
+});
 
 // register for event route
 app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
