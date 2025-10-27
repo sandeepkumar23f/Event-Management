@@ -1,143 +1,153 @@
-import express from "express"
-import { ObjectId } from "mongodb"
-import cors from "cors"
+import express from "express";
+import { ObjectId } from "mongodb";
+import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 import mongoose from "mongoose";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import  { connection } from "./dbconfig.js"
+import { connection } from "./dbconfig.js";
 dotenv.config();
 const app = express();
 const port = 5000;
-app.use(cors({
+app.use(
+  cors({
     origin: "http://localhost:5173",
-    credentials: true
-}))
+    credentials: true,
+  })
+);
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 
+// Admin signup
+app.post("/admin-signup", async (req, res) => {
+  const adminData = req.body;
+  if (adminData.email && adminData.password) {
+    const db = await connection();
+    const collection = await db.collection("admins");
+    const result = await collection.insertOne(adminData);
+    if (result.acknowledged) {
+      const tokenData = {
+        _id: result.insertedId.toString(),
+        email: adminData.email,
+      };
 
+      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+        if (error)
+          return res.status(500).send({ success: false, message: "JWT error" });
 
-// Admin signup 
-app.post("/admin-signup",async (req,res)=>{
-    const adminData = req.body;
-    if(adminData.email && adminData.password){
-        const db = await connection();
-        const collection = await db.collection("admins");
-        const result = await collection.insertOne(adminData);
-if (result.acknowledged) {
-  const tokenData = { _id: result.insertedId.toString(), email: adminData.email };
+        res.cookie("token", token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: false,
+          expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        });
 
-  jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
-    if (error)
-      return res.status(500).send({ success: false, message: "JWT error" });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-      expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    });
-
-    res.send({ success: true, message: "Admin Signup done" });
-  });
-}
-
+        res.send({ success: true, message: "Admin Signup done" });
+      });
     }
-})
+  }
+});
 
 // User signup
-app.post("/user-signup", async(req,res)=>{
-    const userData = req.body;
-    if(userData.email && userData.password){
-        const db = await connection();
-        const collection = await db.collection("users");
-        const result = await collection.insertOne(userData);
-if (result.acknowledged) {
-  const tokenData = { _id: result.insertedId.toString(), email: userData.email };
+app.post("/user-signup", async (req, res) => {
+  const userData = req.body;
+  if (userData.email && userData.password) {
+    const db = await connection();
+    const collection = await db.collection("users");
+    const result = await collection.insertOne(userData);
+    if (result.acknowledged) {
+      const tokenData = {
+        _id: result.insertedId.toString(),
+        email: userData.email,
+      };
 
-  jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
-    if (error)
-      return res.status(500).send({ success: false, message: "JWT error" });
+      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+        if (error)
+          return res.status(500).send({ success: false, message: "JWT error" });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-      expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    });
+        res.cookie("token", token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: false,
+          expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        });
 
-    res.send({ success: true, message: "User Signup done" });
-  });
-}
-
+        res.send({ success: true, message: "User Signup done" });
+      });
     }
+  }
 });
 
 // Admin Login
-app.post("/admin-login",async (req,res)=>{
-    const adminData = req.body;
-    if(adminData.email && adminData.password){
-        const db = await connection();
-        const collection = await db.collection("admins");
-        const result = await collection.findOne({
-            email: adminData.email,
-            password: adminData.password
+app.post("/admin-login", async (req, res) => {
+  const adminData = req.body;
+  if (adminData.email && adminData.password) {
+    const db = await connection();
+    const collection = await db.collection("admins");
+    const result = await collection.findOne({
+      email: adminData.email,
+      password: adminData.password,
+    });
+    if (result) {
+      const tokenData = { _id: result._id.toString(), email: result.email };
+      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+        if (error)
+          return res
+            .status(500)
+            .send({ success: false, message: "Jwt eerror" });
+        res.cookie("token", token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: false,
+          expiresIn: 5 * 24 * 60 * 60 * 1000,
         });
-        if(result){
-          const tokenData = { _id: result._id.toString(), email: result.email };
-          jwt.sign(tokenData,"Google",{expiresIn: "5d"},(error,token)=>{
-                if(error) 
-                    return res.status(500).send({success: false, message: "Jwt eerror"});
-                res.cookie('token',token,{
-                    httpOnly: true,
-                    sameSite: "lax",
-                    secure: false,
-                    expiresIn: 5 * 24 * 60 * 60 * 1000
-                });
-                res.send({ success: true, message: "Admin Login Done"})
-            });
-        } else{
-            res.send({
-                success: false,
-                message: "Admin login failed"
-            })
-        }
+        res.send({ success: true, message: "Admin Login Done" });
+      });
+    } else {
+      res.send({
+        success: false,
+        message: "Admin login failed",
+      });
     }
-})
+  }
+});
 
 // User Login
-app.post("/user-login", async (req,res)=>{
-    const userData = req.body;
-    if(userData.email && userData.password){
-        const db = await connection();
-        const collection = await db.collection("users");
-        const result = await collection.findOne({
-            email: userData.email,
-            password: userData.password
+app.post("/user-login", async (req, res) => {
+  const userData = req.body;
+  if (userData.email && userData.password) {
+    const db = await connection();
+    const collection = await db.collection("users");
+    const result = await collection.findOne({
+      email: userData.email,
+      password: userData.password,
+    });
+    if (result) {
+      const tokenData = { _id: result._id.toString(), email: result.email };
+      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+        if (error)
+          return res
+            .status(500)
+            .send({ success: false, message: "User Login failed" });
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+          expiresIn: 5 * 24 * 60 * 60 * 1000,
         });
-        if(result){
-            const tokenData = { _id: result._id.toString(), email: result.email };
-            jwt.sign(tokenData,"Google",{expiresIn: "5d"}, (error,token)=>{
-                if(error)
-                    return res.status(500).send({ success: false, message: "User Login failed"})
-                res.cookie('token',token,{
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: "lax",
-                    expiresIn: 5 * 24 * 60 * 60 * 1000
-                });
-                res.status(200).send({ success: true, message: "User Login Successfully done"})
-            });
-        } else{
-            res.send({
-                success: false,
-                message: "User login failed"
-            })
-        }
+        res
+          .status(200)
+          .send({ success: true, message: "User Login Successfully done" });
+      });
+    } else {
+      res.send({
+        success: false,
+        message: "User login failed",
+      });
     }
-})
+  }
+});
 
 // Admin dashboard mcq section
 app.post("/add-question/:eventId", verifyJWTToken, async (req, res) => {
@@ -145,7 +155,11 @@ app.post("/add-question/:eventId", verifyJWTToken, async (req, res) => {
     const { description, options, correctOption } = req.body;
     const { eventId } = req.params;
 
-    if (!description?.trim() || !Array.isArray(options) || options.length !== 4) {
+    if (
+      !description?.trim() ||
+      !Array.isArray(options) ||
+      options.length !== 4
+    ) {
       return res.status(400).json({
         success: false,
         message: "Question description and exactly four options are required",
@@ -159,7 +173,9 @@ app.post("/add-question/:eventId", verifyJWTToken, async (req, res) => {
       });
     }
 
-    const cleanOptions = options.map(opt => opt.trim()).filter(opt => opt !== "");
+    const cleanOptions = options
+      .map((opt) => opt.trim())
+      .filter((opt) => opt !== "");
     if (cleanOptions.length !== 4) {
       return res.status(400).json({
         success: false,
@@ -175,7 +191,8 @@ app.post("/add-question/:eventId", verifyJWTToken, async (req, res) => {
     if (!isValidCorrectOption) {
       return res.status(400).json({
         success: false,
-        message: "Correct option must be one of A, B, C, or D (or match an option text)",
+        message:
+          "Correct option must be one of A, B, C, or D (or match an option text)",
       });
     }
 
@@ -212,7 +229,6 @@ app.post("/add-question/:eventId", verifyJWTToken, async (req, res) => {
   }
 });
 
-
 app.get("/questions/:eventId", verifyJWTToken, async (req, res) => {
   try {
     const db = await connection();
@@ -220,9 +236,9 @@ app.get("/questions/:eventId", verifyJWTToken, async (req, res) => {
     const { eventId } = req.params;
 
     const questions = await collection
-      .find({ 
+      .find({
         userId: new ObjectId(req.user._id),
-        eventId: new ObjectId(eventId)
+        eventId: new ObjectId(eventId),
       })
       .toArray();
 
@@ -240,8 +256,6 @@ app.get("/questions/:eventId", verifyJWTToken, async (req, res) => {
     });
   }
 });
-
-
 
 app.get("/question/:id", verifyJWTToken, async (req, res) => {
   try {
@@ -313,93 +327,92 @@ app.put("/update-question/:questionId", verifyJWTToken, async (req, res) => {
   }
 });
 
-
-app.delete("/delete/:id/:eventId", verifyJWTToken , async(req,res)=>{
-  try{
+app.delete("/delete/:id/:eventId", verifyJWTToken, async (req, res) => {
+  try {
     const db = await connection();
-    const collection = await db.collection("questions")
-    const { id , eventId}=req.params;
+    const collection = await db.collection("questions");
+    const { id, eventId } = req.params;
 
     const result = await collection.deleteOne({
       _id: new ObjectId(id),
       userId: new ObjectId(req.user._id),
-      eventId: new ObjectId(eventId)
+      eventId: new ObjectId(eventId),
     });
 
-    if(result.deletedCount > 0){
+    if (result.deletedCount > 0) {
       res.status(200).send({
         success: true,
-        message: "Question deleted successfully"
-      })
-    } else{
+        message: "Question deleted successfully",
+      });
+    } else {
       res.status(404).send({
         success: false,
-        message: "Question not found"
-      })
-    } 
-  } catch(error){
-    console.error("Error deleting Question: ", error.message)
+        message: "Question not found",
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting Question: ", error.message);
     res.status(500).send({
       success: false,
-      message: "Server error please try again later"
-    })
+      message: "Server error please try again later",
+    });
   }
-})
+});
 
 // create mcq event
-app.post("/create-mcq-event", verifyJWTToken, async(req,res)=>{
-  try{
-    const { name, description, date, capacity} = req.body;
-    if(!name || !description || !date || !capacity){
+app.post("/create-mcq-event", verifyJWTToken, async (req, res) => {
+  try {
+    const { name, description, date, capacity } = req.body;
+    if (!name || !description || !date || !capacity) {
       res.status(400).send({
         success: false,
-        message: "All fields are required"
-      })
-    } 
+        message: "All fields are required",
+      });
+    }
     const db = await connection();
-    const collection = await db.collection("events")
+    const collection = await db.collection("events");
     const mcq = {
       name,
       description,
       date: new Date(date),
       capacity: parseInt(capacity),
       createdBy: new ObjectId(req.user._id),
-      createdAt: new Date()
-    }
-    const result = await collection.insertOne(mcq)
-    if(result.acknowledged){
+      createdAt: new Date(),
+    };
+    const result = await collection.insertOne(mcq);
+    if (result.acknowledged) {
       return res.status(200).json({
         success: true,
         message: "Event added successfully",
-        result
-      })
-    } else{
+        result,
+      });
+    } else {
       return res.status(400).json({
         success: false,
-        message: "Error adding Event"
-      })
-    } 
-  } catch(error){
-    console.error("Error adding Event",error.message)
+        message: "Error adding Event",
+      });
+    }
+  } catch (error) {
+    console.error("Error adding Event", error.message);
     res.status(500).json({
       success: false,
-      message: "Server error"
-    })
+      message: "Server error",
+    });
   }
-})
+});
 // get mcq events
 app.get("/events", verifyJWTToken, async (req, res) => {
   try {
     const db = await connection();
     const collection = db.collection("events");
-    const currentDate = new Date()
+    const currentDate = new Date();
     const events = await collection
-    .find({
-      createdBy: new ObjectId(req.user._id),
-      date: { $gte: currentDate}
-    })
-    .sort({ date: 1})
-    .toArray();
+      .find({
+        createdBy: new ObjectId(req.user._id),
+        date: { $gte: currentDate },
+      })
+      .sort({ date: 1 })
+      .toArray();
 
     res.status(200).json({
       success: true,
@@ -415,35 +428,35 @@ app.get("/events", verifyJWTToken, async (req, res) => {
   }
 });
 // events
-app.get("/events/:id", verifyJWTToken, async (req,res)=>{
-  try{
+app.get("/events/:id", verifyJWTToken, async (req, res) => {
+  try {
     const db = await connection();
-    const collection  = await db.collection("events")
+    const collection = await db.collection("events");
     const { id } = req.params;
     const event = await collection.findOne({
       _id: new ObjectId(id),
       createdBy: new ObjectId(req.user._id),
     });
-    if(!event){
+    if (!event) {
       return res.status(400).json({
         success: false,
-        message: "Event not found"
-      })
+        message: "Event not found",
+      });
     }
 
     res.status(200).json({
       success: true,
       message: "Event fetched successfully",
-      event
-    })
-  } catch(error){
-    console.error("Error fetching Event", error.message)
+      event,
+    });
+  } catch (error) {
+    console.error("Error fetching Event", error.message);
     res.status(500).json({
       success: false,
-      message: "Server error please try again later "
-    })
+      message: "Server error please try again later ",
+    });
   }
-})
+});
 // update event data
 app.put("/update-event/:id", verifyJWTToken, async (req, res) => {
   try {
@@ -516,7 +529,7 @@ app.delete("/delete-event/:id", verifyJWTToken, async (req, res) => {
   }
 });
 
-// user routes 
+// user routes
 app.get("/explore-events", async (req, res) => {
   try {
     const db = await connection();
@@ -552,7 +565,60 @@ app.get("/explore-events", async (req, res) => {
   }
 });
 
+// register for event route
+app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
+  try{
+    const {id: eventId} = req.params
+    const userId = req.user._id
+    const db = await connection();
+    const eventsCollection = db.collection("events")
+    const registrationsCollection = db.collection("registrations")
 
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId)})
+    if(!event)
+      return res.status(404).json("Event not found")
+
+    // check if already registeredd
+    const alreadyRegistered = await registrationsCollection.findOne({
+      eventId: new ObjectId(eventId),
+      userId: new ObjectId(userId)
+    });
+    if(alreadyRegistered)
+      return res.status(400).json("You have already registered for this event")
+
+    // check the limit of event
+    const registrationCount = await registrationsCollection.countDocuments({
+      eventId: new ObjectId(eventId)
+    });
+    if(registrationCount >= event.capacity) 
+      return res.status(400).json("Event is full")
+
+    // register the user
+    const result = await registrationsCollection.insertOne({
+      eventId: new ObjectId(eventId),
+      userId: new ObjectId(userId),
+      registeredAt: new Date()
+    });
+    if(result.acknowledged){
+      res.status(200).json({
+        success: true,
+        message: "Your registration for this is successfully done"
+      })
+    } 
+    else{
+      res.status(500).json({
+        success: false,
+        message: "Event Registration Failed"
+      })
+    }
+  } catch(error){
+    console.error("Error registering event: ", error.message)
+    res.status(500).json({
+      success: false,
+      message: "Server error please try again later"
+    })
+  }
+});
 function verifyJWTToken(req, res, next) {
   console.log("Cookies received:", req.cookies);
   const token = req.cookies["token"];
@@ -569,6 +635,6 @@ function verifyJWTToken(req, res, next) {
     next();
   });
 }
-app.listen(port,(req,res)=>{
-    console.log(`app is listening on port ${port}`)
-})
+app.listen(port, (req, res) => {
+  console.log(`app is listening on port ${port}`);
+});

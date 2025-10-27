@@ -17,6 +17,7 @@ import UpdateQuestion from "./components/admin/mcq-section/UpdateQuestion";
 import CreateEvent from "./components/admin/mcq-section/CreateEvent";
 import AdminEvents from "./components/admin/mcq-section/Events";
 import ExploreEvents from "./components/user/ExploreEvents";
+import Register from "./components/user/Register";
 function App() {
   const [adminlogin, setAdminLogin] = useState(!!localStorage.getItem("admin-login"));
   const [userlogin,setUserLogin] = useState(!!localStorage.getItem("user-login"))
@@ -43,8 +44,9 @@ function App() {
         <Route path="/update-question/:id/:eventId" element={<ProtectedAdmin><UpdateQuestion/></ProtectedAdmin>} />
         <Route path="/create-mcq-event" element={<ProtectedAdmin><CreateEvent/></ProtectedAdmin>} />
         <Route path="/events" element={<ProtectedAdmin><AdminEvents/></ProtectedAdmin>} />
-        //user public Routes
+        {/* user public Routes */}
         <Route path="/explore-events" element={<ProtectedUser><ExploreEvents/></ProtectedUser>} />
+        <Route path="/register-event" element={<ProtectedUser><Register/></ProtectedUser>} />
       </Routes>
     </>
   );
