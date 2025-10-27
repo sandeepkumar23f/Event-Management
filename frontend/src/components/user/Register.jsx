@@ -13,10 +13,12 @@ export default function RegisterPage() {
     const fetchEvent = async () => {
       try {
         const token = localStorage.getItem("token");
+
         const res = await fetch(`http://localhost:5000/explore-events/${id}`, {
-          credentials: "include",
+          credentials: "include", 
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const data = await res.json();
         if (data.success) {
           setEvent(data.event);
@@ -40,16 +42,21 @@ export default function RegisterPage() {
     setRegistering(true);
     try {
       const token = localStorage.getItem("token");
+
       const res = await fetch(`http://localhost:5000/register-event/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include", 
       });
+
       const data = await res.json();
+
       if (data.success) {
-        setSuccessMsg("Registered successfully!");
+        setSuccessMsg(data.message || "Registered successfully!");
+        setError("");
       } else {
         setError(data.message || "Failed to register");
       }
@@ -69,7 +76,7 @@ export default function RegisterPage() {
     );
   }
 
-  if (error) {
+  if (error && !event) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p className="text-red-600 text-lg">{error}</p>
@@ -103,6 +110,8 @@ export default function RegisterPage() {
             {registering ? "Registering..." : "Register"}
           </button>
         )}
+
+        {error && <p className="text-red-600 mt-3">{error}</p>}
       </div>
     </div>
   );

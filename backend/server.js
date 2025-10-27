@@ -132,9 +132,9 @@ app.post("/user-login", async (req, res) => {
             .send({ success: false, message: "User Login failed" });
         res.cookie("token", token, {
           httpOnly: true,
-          secure: true,
+          secure: false,
           sameSite: "lax",
-          expiresIn: 5 * 24 * 60 * 60 * 1000,
+          expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
         });
         res
           .status(200)
@@ -588,6 +588,7 @@ app.get("/explore-events/:id", verifyJWTToken, async (req, res) => {
 // register for event route
 app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
   try{
+    console.log("🟢 Incoming register request for:", req.params.id);
     const {id: eventId} = req.params
     const userId = req.user._id
     const db = await connection();
@@ -641,20 +642,29 @@ app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
 });
 function verifyJWTToken(req, res, next) {
   console.log("Cookies received:", req.cookies);
-  const token = req.cookies["token"];
+
+  // First try cookie
+  let token = req.cookies?.token;
+
+  // If not found, try Authorization header
+  if (!token && req.headers.authorization) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
   if (!token) {
     return res.status(401).json({ success: false, message: "No token found" });
   }
 
   jwt.verify(token, "Google", (error, decoded) => {
     if (error) {
-      return res.status(403).json({ message: "Invalid token", success: false });
+      return res.status(403).json({ success: false, message: "Invalid token" });
     }
 
     req.user = decoded;
     next();
   });
 }
+
 app.listen(port, (req, res) => {
   console.log(`app is listening on port ${port}`);
 });
