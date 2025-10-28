@@ -591,6 +591,7 @@ app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
     console.log("🟢 Incoming register request for:", req.params.id);
     const {id: eventId} = req.params
     const userId = req.user._id
+    const { name ,email, password} = req.body;
     const db = await connection();
     const eventsCollection = db.collection("events")
     const registrationsCollection = db.collection("registrations")
@@ -618,6 +619,9 @@ app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
     const result = await registrationsCollection.insertOne({
       eventId: new ObjectId(eventId),
       userId: new ObjectId(userId),
+      name,
+      email,
+      password,
       registeredAt: new Date()
     });
     if(result.acknowledged){

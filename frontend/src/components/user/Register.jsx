@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 export default function RegisterPage() {
-  const { id } = useParams(); // event ID from URL
+  const { id } = useParams(); 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [registering, setRegistering] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [user, setUser] = useState({ name: "", email: "", password: "" });
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -15,7 +16,7 @@ export default function RegisterPage() {
         const token = localStorage.getItem("token");
 
         const res = await fetch(`http://localhost:5000/explore-events/${id}`, {
-          credentials: "include", 
+          credentials: "include",
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -39,6 +40,12 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     if (!event) return;
 
+    // Basic form validation
+    if (!user.name || !user.email || !user.password) {
+      setError("All fields are required");
+      return;
+    }
+
     setRegistering(true);
     try {
       const token = localStorage.getItem("token");
@@ -49,7 +56,8 @@ export default function RegisterPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        credentials: "include", 
+        credentials: "include",
+        body: JSON.stringify(user), // send name, email, password
       });
 
       const data = await res.json();
@@ -98,6 +106,31 @@ export default function RegisterPage() {
         <p className="text-gray-600 mb-4">
           🎯 <strong>Capacity:</strong> {event.capacity}
         </p>
+
+        {/* 👇 User input fields */}
+        <div className="space-y-3 mb-4">
+          <input
+            type="text"
+            placeholder="Your Name"
+            value={user.name}
+            onChange={(e) => setUser({ ...user, name: e.target.value })}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            type="email"
+            placeholder="Your Email"
+            value={user.email}
+            onChange={(e) => setUser({ ...user, email: e.target.value })}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            type="password"
+            placeholder="Your Password"
+            value={user.password}
+            onChange={(e) => setUser({ ...user, password: e.target.value })}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
         {successMsg ? (
           <p className="text-green-600 font-medium">{successMsg}</p>
