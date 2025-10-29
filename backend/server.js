@@ -644,6 +644,84 @@ app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
     })
   }
 });
+// for admin so that admin can see the the user who have been registered for that event
+app.get("/event-registrations/:id", verifyJWTToken, async(req,res)=>{
+  try{
+    const { id: eventId} = req.params;
+    const adminId = req.user._id;
+    const db = await connection();
+    const eventsCollection = db.collection("events");
+    const registrationsCollection = db.collection("registrations");
+
+    const event = await eventsCollection.findOne({
+      _id: new ObjectId(eventId),
+      
+    });
+
+    if(!event)
+      return res.status(403).json({
+    success: false,
+    message: "You are not authorized to view this event’s registrations"
+    });
+
+    const registrations = await registrationsCollection
+    .find({eventId: new ObjectId(eventId)})
+    .toArray();
+
+    res.status(200).json({
+      success: true,
+      count: registrations.length,
+      registrations
+    });
+  }
+  catch(error){
+    console.error("Error fetching event registrations: ", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error please try again later"
+    })
+  }
+})
+
+// for admin if admin clicks on start then contest will start
+app.post("/start-event/:id", verifyJWTToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user._id;
+
+    const db = await connection();
+    const eventsCollection = db.collection("events");
+
+    const event = await eventsCollection.findOne({
+      _id: new ObjectId(id),
+      createdBy: new ObjectId(adminId),
+    });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found or unauthorized",
+      });
+    }
+
+    await eventsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { status: "started" } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Your event started successfully",
+    });
+  } catch (error) {
+    console.error("Error starting event:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error. Please try again later.",
+    });
+  }
+});
+
 function verifyJWTToken(req, res, next) {
   console.log("Cookies received:", req.cookies);
 
