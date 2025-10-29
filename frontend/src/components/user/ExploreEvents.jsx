@@ -9,27 +9,28 @@ export default function ExploreEvents() {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/explore-events/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-        if (data.success) {
-          setEvents(data.events);
-        } else {
-          setError(data.message || "Failed to load events");
-        }
-      } catch (error) {
-        console.error("Error fetching events: ", error.message);
-        setError("Something went wrong please try again later");
-      } finally {
-        setLoading(false);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/explore-events", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        
+        const registeredIds = data.registeredEventIds || [];
+        const available = data.events.filter(
+          (e) => !registeredIds.includes(e._id)
+        );
+        setEvents(available);
       }
-    };
-    fetchEvents();
+    } catch (err) {
+      console.error(err);
+    } finally{
+      setLoading(false)
+    }
+  };
+  fetchEvents();
   }, []);
 
   if (loading)

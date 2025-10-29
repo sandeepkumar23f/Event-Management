@@ -564,86 +564,110 @@ app.get("/explore-events", async (req, res) => {
     });
   }
 });
-// explore events by userId
+
+// check user for already registered events || explore events by userId
 app.get("/explore-events/:id", verifyJWTToken, async (req, res) => {
   try {
-    const db = await connection();
-    const collection = db.collection("events");
     const { id } = req.params;
+    const userId = req.user.id;
 
-    const event = await collection.findOne({ _id: new ObjectId(id) });
-    if (!event)
-      return res.status(404).json({ success: false, message: "Event not found" });
+    const db = await connection();
+    const eventsCollection = db.collection("events");
 
-    res.status(200).json({ success: true, event });
+    const event = await eventsCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    const alreadyRegistered = event.participants?.some(
+      (p) => p.userId.toString() === userId
+    );
+
+    res.status(200).json({
+      success: true,
+      event,
+      alreadyRegistered,
+    });
   } catch (error) {
-    console.error("Error fetching Event", error.message);
+    console.error("Error fetching event:", error);
     res.status(500).json({
       success: false,
-      message: "Server error please try again later",
+      message: "Server error while fetching event",
     });
   }
 });
 
+
 // register for event route
 app.post("/register-event/:id", verifyJWTToken, async (req, res) => {
-  try{
-    console.log("🟢 Incoming register request for:", req.params.id);
-    const {id: eventId} = req.params
-    const userId = req.user._id
-    const { name ,email, password} = req.body;
+  try {
+    console.log("Incoming register request for:", req.params.id);
+
+    const { id: eventId } = req.params;
+    const userId = req.user._id;
+    const { name, email, password } = req.body;
+
     const db = await connection();
-    const eventsCollection = db.collection("events")
-    const registrationsCollection = db.collection("registrations")
+    const eventsCollection = db.collection("events");
+    const registrationsCollection = db.collection("registrations");
 
-    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId)})
-    if(!event)
-      return res.status(404).json("Event not found")
+    const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
 
-    // check if already registeredd
     const alreadyRegistered = await registrationsCollection.findOne({
       eventId: new ObjectId(eventId),
-      userId: new ObjectId(userId)
+      userId: new ObjectId(userId),
     });
-    if(alreadyRegistered)
-      return res.status(400).json("You have already registered for this event")
+    if (alreadyRegistered)
+      return res
+        .status(400)
+        .json({ success: false, message: "Already registered for this event" });
 
-    // check the limit of event
     const registrationCount = await registrationsCollection.countDocuments({
-      eventId: new ObjectId(eventId)
+      eventId: new ObjectId(eventId),
     });
-    if(registrationCount >= event.capacity) 
-      return res.status(400).json("Event is full")
+    if (registrationCount >= event.capacity)
+      return res
+        .status(400)
+        .json({ success: false, message: "Event is full" });
 
-    // register the user
-    const result = await registrationsCollection.insertOne({
+    const newRegistration = {
       eventId: new ObjectId(eventId),
       userId: new ObjectId(userId),
       name,
       email,
       password,
-      registeredAt: new Date()
-    });
-    if(result.acknowledged){
+      registeredAt: new Date(),
+    };
+
+    const result = await registrationsCollection.insertOne(newRegistration);
+
+    if (result.acknowledged) {
       res.status(200).json({
         success: true,
-        message: "Your registration for this is successfully done"
-      })
-    } 
-    else{
-      res.status(500).json({
-        success: false,
-        message: "Event Registration Failed"
-      })
+        message: "Registered successfully!",
+      });
+    } else {
+      res
+        .status(500)
+        .json({ success: false, message: "Event registration failed" });
     }
-  } catch(error){
-    console.error("Error registering event: ", error.message)
+  } catch (error) {
+    console.error("Error registering event:", error);
     res.status(500).json({
       success: false,
-      message: "Server error please try again later"
-    })
+      message: "Server error, please try again later",
+    });
   }
 });
+
 // for admin so that admin can see the the user who have been registered for that event
 app.get("/event-registrations/:id", verifyJWTToken, async(req,res)=>{
   try{
@@ -721,6 +745,42 @@ app.post("/start-event/:id", verifyJWTToken, async (req, res) => {
     });
   }
 });
+ // for user to see their all registered events
+ app.get("/my-registrations", verifyJWTToken, async (req, res) => {
+  try {
+    const db = await connection();
+    const registrations = db.collection("registrations");
+    const events = db.collection("events");
+
+    const userId = new ObjectId(req.user._id); 
+    // Fetch all registrations for the logged-in user
+    const userRegs = await registrations.find({ userId }).toArray();
+
+    if (userRegs.length === 0) {
+      return res.json({ success: true, events: [] });
+    }
+
+    // Extract all eventIds
+    const eventIds = userRegs.map((r) => new ObjectId(r.eventId));
+
+    // Fetch those events
+    const registeredEvents = await events
+      .find({ _id: { $in: eventIds } })
+      .toArray();
+
+    console.log(` Found ${registeredEvents.length} registered events for user ${userId}`);
+
+    res.json({ success: true, events: registeredEvents });
+  } catch (error) {
+    console.error("Error fetching registered events:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching registered events",
+    });
+  }
+});
+
+
 
 function verifyJWTToken(req, res, next) {
   console.log("Cookies received:", req.cookies);
