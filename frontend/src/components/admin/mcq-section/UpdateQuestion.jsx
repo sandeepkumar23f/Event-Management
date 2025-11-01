@@ -8,6 +8,7 @@ export default function UpdateQuestion() {
     options: ["", "", "", ""],
     correctOption: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -16,9 +17,18 @@ export default function UpdateQuestion() {
     const fetchQuestion = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/question/${questionId}`,
-          { credentials: "include" }
+          `http://localhost:5000/api/questions/${questionId}`,
+          { 
+            method: "GET",
+            credentials: "include" 
+          }
         );
+        
+        // Check if response is OK before parsing JSON
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const data = await res.json();
         if (data.success) {
           setFormData({
@@ -30,7 +40,7 @@ export default function UpdateQuestion() {
           alert(data.message || "Failed to fetch question");
         }
       } catch (err) {
-        console.error(err);
+        console.error("Fetch error:", err);
         alert("Server error, try again later");
       }
     };
@@ -49,51 +59,44 @@ export default function UpdateQuestion() {
   };
 
   const handleCorrectOptionChange = (e) => {
-    setFormData({ ...formData, correctOption: e.target.value });
+    setFormData({ ...formData, correctOption: e.target.value.toUpperCase() });
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  setLoading(true);
 
-    if (!formData.description.trim()) {
-      alert("Question description is required");
-      return;
-    }
-
-    if (formData.options.some((opt) => !opt.trim())) {
-      alert("All four options are required");
-      return;
-    }
-
-    if (!formData.correctOption) {
-      alert("Please select the correct option");
-      return;
-    }
-
-    try {
-      const res = await fetch(
-        `http://localhost:5000/update-question/${questionId}`, 
-        {
-          method: "PUT",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...formData, eventId }), 
-        }
-      );
-
-      const result = await res.json();
-
-      if (result.success) {
-        alert("Question updated successfully!");
-        navigate(`/questions/${eventId}`);
-      } else {
-        alert(result.message || "Error updating question");
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/questions/${questionId}`, 
+      {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          description: formData.description.trim(),
+          options: formData.options.map(opt => opt.trim()),
+          correctOption: formData.correctOption.trim().toUpperCase(),
+          eventId: eventId // Make sure this is the correct event ID
+        }), 
       }
-    } catch (err) {
-      console.error("Error updating question:", err);
-      alert("Server error, try again later");
+    );
+
+    const result = await res.json();
+
+    if (result.success) {
+      alert(result.message || "Question updated successfully!");
+      navigate(`/questions/${eventId}`);
+    } else {
+      alert(result.message || "Error updating question");
     }
-  };
+  } catch (err) {
+    console.error("Error updating question:", err);
+    alert("Server error, try again later");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-blue-50 flex justify-center items-center">
@@ -113,6 +116,7 @@ export default function UpdateQuestion() {
             onChange={handleDescriptionChange}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             placeholder="Enter question..."
+            rows="3"
           />
         </div>
 
@@ -137,7 +141,7 @@ export default function UpdateQuestion() {
             type="text"
             value={formData.correctOption}
             onChange={handleCorrectOptionChange}
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 uppercase"
             placeholder="Enter correct option (A, B, C, or D)"
             maxLength={1}
           />
@@ -145,9 +149,14 @@ export default function UpdateQuestion() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+          disabled={loading}
+          className={`w-full py-2 rounded-md transition ${
+            loading 
+              ? "bg-gray-400 cursor-not-allowed" 
+              : "bg-blue-600 hover:bg-blue-700"
+          } text-white`}
         >
-          Update Question
+          {loading ? "Updating..." : "Update Question"}
         </button>
       </form>
     </div>

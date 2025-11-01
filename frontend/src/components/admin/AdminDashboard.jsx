@@ -53,11 +53,9 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-semibold text-green-700 mb-2">
               Manage Events
             </h2>
-            <p className="text-gray-600">
-              Edit or remove existing events.
-            </p>
+            <p className="text-gray-600">Edit or remove existing events.</p>
             <button
-              onClick={() => navigate("/manage-events")}
+              onClick={() => navigate("/events")}
               className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
             >
               Manage Events
@@ -80,12 +78,8 @@ export default function AdminDashboard() {
           </div>
 
           <div className="bg-red-100 p-6 rounded-xl hover:bg-red-200 transition">
-            <h2 className="text-xl font-semibold text-red-700 mb-2">
-              Logout
-            </h2>
-            <p className="text-gray-600">
-              Sign out from the admin account.
-            </p>
+            <h2 className="text-xl font-semibold text-red-700 mb-2">Logout</h2>
+            <p className="text-gray-600">Sign out from the admin account.</p>
             <button
               onClick={handleLogout}
               className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"

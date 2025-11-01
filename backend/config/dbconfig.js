@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 
-const url = "mongodb+srv://event_management:event123@cluster0.f2gjwjm.mongodb.net/event-management?retryWrites=true&w=majority&appName=Cluster0";
+const url = "mongodb+srv://event_management:event123@cluster0.f2gjwjm.mongodb.net/Event-management?retryWrites=true&w=majority&appName=Cluster0";
 
 const dbName = "Event-management";
 

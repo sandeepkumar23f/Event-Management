@@ -53,7 +53,7 @@ export default function AdminNavbar({ login, setLogin }) {
               </li>
               <li>
                 <Link
-                  to="/manage-events"
+                  to="/events"
                   onClick={() => setMenuOpen(false)}
                   className="block text-white hover:text-yellow-300 px-4 py-2 rounded text-lg"
                 >
@@ -97,7 +97,7 @@ export default function AdminNavbar({ login, setLogin }) {
               </li>
               <li>
                 <Link
-                  to="/manage-events"
+                  to="/events"
                   className="text-white hover:text-yellow-300 text-lg"
                 >
                   Manage Events

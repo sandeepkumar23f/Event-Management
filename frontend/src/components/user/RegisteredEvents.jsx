@@ -6,7 +6,7 @@ export default function RegisteredEvents() {
   useEffect(() => {
     const fetchRegistered = async () => {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/my-registrations", {
+      const res = await fetch(`http://localhost:5000/api/events/registrations`, {
         credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       });

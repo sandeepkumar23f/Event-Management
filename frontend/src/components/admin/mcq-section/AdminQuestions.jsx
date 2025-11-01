@@ -11,7 +11,7 @@ export default function AdminQuestions() {
 
   const fetchQuestions = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/questions/${eventId}`, {
+      const res = await fetch(`http://localhost:5000/api/questions/all/${eventId}`, {
         credentials: "include",
         cache: "no-store",
       });
@@ -27,7 +27,7 @@ export default function AdminQuestions() {
 
   const deleteQuestion = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/delete/${id}/${eventId}`, {
+      const res = await fetch(`http://localhost:5000/api/questions/delete/${id}/${eventId}`, {
         method: "DELETE",
         credentials: "include",
       });

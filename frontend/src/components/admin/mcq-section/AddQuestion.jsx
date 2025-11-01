@@ -45,7 +45,7 @@ export default function AddQuestion() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/add-question/${eventId}`, 
+        `http://localhost:5000/api/questions/add/${eventId}`, 
         {
           method: "POST",
           credentials: "include",

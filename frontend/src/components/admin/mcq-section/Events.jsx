@@ -13,7 +13,7 @@ export default function AdminEvents() {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch("http://localhost:5000/events", {
+      const res = await fetch("http://localhost:5000/api/events", {
         credentials: "include",
       });
       const data = await res.json();
@@ -32,7 +32,7 @@ export default function AdminEvents() {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/delete-event/${eventId}`, {
+      const res = await fetch(`http://localhost:5000/api/events/delete/${eventId}`, {
         method: "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -50,7 +50,7 @@ export default function AdminEvents() {
 
   const updateEvent = async (eventId, updatedData) => {
     try {
-      const res = await fetch(`http://localhost:5000/update-event/${eventId}`, {
+      const res = await fetch(`http://localhost:5000/api/events/update/${eventId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -70,7 +70,7 @@ export default function AdminEvents() {
 
   const startContest = async (eventId) => {
     try {
-      const res = await fetch(`http://localhost:5000/start-event/${eventId}`, {
+      const res = await fetch(`http://localhost:5000/api/events/start/${eventId}`, {
         method: "POST",
         credentials: "include",
       });
@@ -130,14 +130,7 @@ export default function AdminEvents() {
                       className="w-full p-2 border rounded mb-2"
                       onChange={(e) => (event.date = e.target.value)}
                     />
-                    <input
-                      type="number"
-                      defaultValue={event.capacity}
-                      className="w-full p-2 border rounded mb-2"
-                      onChange={(e) =>
-                        (event.capacity = parseInt(e.target.value))
-                      }
-                    />
+                    
                     <div className="flex gap-2">
                       <button
                         onClick={() => updateEvent(event._id, event)}
@@ -178,9 +171,6 @@ export default function AdminEvents() {
                       <p>
                         <strong>Date:</strong>{" "}
                         {new Date(event.date).toLocaleString()}
-                      </p>
-                      <p>
-                        <strong>Capacity:</strong> {event.capacity}
                       </p>
                       <p>
                         <strong>Registered:</strong>{" "}

@@ -14,12 +14,10 @@ export default function UserNavbar({ login, setUserLogin }) {
   return (
     <nav className="bg-indigo-900 fixed top-0 left-0 w-full shadow-lg z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
-        {/* Logo / Title */}
         <div className="text-white font-bold text-xl sm:text-2xl tracking-wide">
           Event Management
         </div>
 
-        {/* Mobile Menu Toggle */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="md:hidden text-white hover:text-yellow-300 focus:outline-none text-2xl"
@@ -46,7 +44,7 @@ export default function UserNavbar({ login, setUserLogin }) {
               </li>
               <li>
                 <Link
-                  to="/events"
+                  to="/my-registrations"
                   onClick={() => setMenuOpen(false)}
                   className="block text-white hover:text-yellow-300 px-4 py-2 rounded text-lg"
                 >

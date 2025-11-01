@@ -9,28 +9,42 @@ export default function ExploreEvents() {
 
   useEffect(() => {
     const fetchEvents = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/explore-events", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-
-      if (data.success) {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Fetching events from /api/events/explore...");
         
-        const registeredIds = data.registeredEventIds || [];
-        const available = data.events.filter(
-          (e) => !registeredIds.includes(e._id)
-        );
-        setEvents(available);
+        const res = await fetch("http://localhost:5000/api/events/explore", {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          credentials: "include"
+        });
+        
+        console.log("Response status:", res.status);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log("API Response:", data); 
+
+        if (data.success) {
+          const availableEvents = data.events || [];
+          console.log("Available events:", availableEvents);
+          setEvents(availableEvents);
+        } else {
+          setError(data.message || "Failed to load events");
+        }
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("Failed to load events. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error(err);
-    } finally{
-      setLoading(false)
-    }
-  };
-  fetchEvents();
+    };
+    fetchEvents();
   }, []);
 
   if (loading)

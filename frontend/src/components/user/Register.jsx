@@ -15,7 +15,7 @@ export default function RegisterPage() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch(`http://localhost:5000/explore-events/${id}`, {
+        const res = await fetch(`http://localhost:5000/api/events/explore/${id}`, {
           credentials: "include",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -40,7 +40,6 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     if (!event) return;
 
-    // Basic form validation
     if (!user.name || !user.email || !user.password) {
       setError("All fields are required");
       return;
@@ -50,14 +49,14 @@ export default function RegisterPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`http://localhost:5000/register-event/${id}`, {
+      const res = await fetch(`http://localhost:5000/api/events/register/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         credentials: "include",
-        body: JSON.stringify(user), // send name, email, password
+        body: JSON.stringify(user), 
       });
 
       const data = await res.json();
@@ -103,11 +102,6 @@ export default function RegisterPage() {
           📍 <strong>Location:</strong> {event.location || "TBA"}
         </p>
         <p className="text-gray-700 mb-4">{event.description}</p>
-        <p className="text-gray-600 mb-4">
-          🎯 <strong>Capacity:</strong> {event.capacity}
-        </p>
-
-        {/* 👇 User input fields */}
         <div className="space-y-3 mb-4">
           <input
             type="text"

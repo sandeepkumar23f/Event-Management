@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 export default function AdminEventRegistrations() {
-  const { id } = useParams(); // event ID from URL
+  const { id } = useParams();
   const [registrations, setRegistrations] = useState([]);
   const [eventName, setEventName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -13,13 +13,16 @@ export default function AdminEventRegistrations() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch(`http://localhost:5000/event-registrations/${id}`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          `http://localhost:5000/api/events/event-registrations/${id}`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const data = await res.json();
 
@@ -39,8 +42,6 @@ export default function AdminEventRegistrations() {
 
     fetchRegistrations();
   }, [id]);
-
-  
 
   if (loading) {
     return (
@@ -75,29 +76,38 @@ export default function AdminEventRegistrations() {
                 <th className="py-2 px-4 border border-gray-300">Name</th>
                 <th className="py-2 px-4 border border-gray-300">Email</th>
                 <th className="py-2 px-4 border border-gray-300">Password</th>
-                <th className="py-2 px-4 border border-gray-300">Registered At</th>
+                <th className="py-2 px-4 border border-gray-300">
+                  Registered At
+                </th>
               </tr>
             </thead>
             <tbody>
-  {registrations.map((reg, index) => (
-    <tr key={reg._id} className="text-center hover:bg-gray-100">
-      <td className="py-2 px-4 border border-gray-300">{index + 1}</td>
-      <td className="py-2 px-4 border border-gray-300">
-        {reg.name || "N/A"}
-      </td>
-      <td className="py-2 px-4 border border-gray-300">
-        {reg.email || "N/A"}
-      </td> <td className="py-2 px-4 border border-gray-300">
-        {reg.password || "N/A"}
-      </td>
-
-      <td className="py-2 px-4 border border-gray-300">
-        {new Date(reg.registeredAt).toLocaleString()}
-      </td>
-    </tr>
-  ))}
-</tbody>
-
+              {registrations.length > 0 &&
+                registrations.map((reg, index) => (
+                  <tr
+                    key={reg._id || index}
+                    className="text-center hover:bg-gray-100"
+                  >
+                    <td className="py-2 px-4 border border-gray-300">
+                      {index + 1}
+                    </td>
+                    <td className="py-2 px-4 border border-gray-300">
+                      {reg.name || "N/A"}
+                    </td>
+                    <td className="py-2 px-4 border border-gray-300">
+                      {reg.email || "N/A"}
+                    </td>
+                    <td className="py-2 px-4 border border-gray-300">
+                      {reg.password || "N/A"}
+                    </td>
+                    <td className="py-2 px-4 border border-gray-300">
+                      {reg.registeredAt
+                        ? new Date(reg.registeredAt).toLocaleString()
+                        : "N/A"}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
           </table>
         )}
       </div>

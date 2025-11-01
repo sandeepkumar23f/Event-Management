@@ -19,7 +19,7 @@ export default function CreateEvent() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/create-mcq-event", {
+      const res = await fetch("http://localhost:5000/api/events/create", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -79,18 +79,6 @@ export default function CreateEvent() {
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium text-gray-700">Capacity</label>
-          <input
-            type="number"
-            value={capacity}
-            onChange={(e) => setCapacity(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            min={1}
             required
           />
         </div>
