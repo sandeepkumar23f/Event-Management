@@ -11,6 +11,7 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import ProtectedAdmin from "./components/admin/ProtectedAdmin";
 import ProtectedUser from "./components/user/ProtectedUser";
 import "./App.css";
+
 import AddQuestion from "./components/admin/mcq-section/AddQuestion";
 import AdminQuestions from "./components/admin/mcq-section/AdminQuestions";
 import UpdateQuestion from "./components/admin/mcq-section/UpdateQuestion";
@@ -22,6 +23,8 @@ import AdminEventRegistrations from "./components/admin/AdminEventRegistrations"
 import RegisteredEvents from "./components/user/RegisteredEvents";
 import CreateOtherEvents from "./components/admin/mcq-section/CreateOtherEvents";
 import GetQuestion from "./components/user/GetQuestion";
+import AdminLeaderboard from "./components/admin/mcq-section/AdminLeaderBoard";
+import ThankYouPage from "./components/user/ThankYouPage";
 function App() {
   const [adminlogin, setAdminLogin] = useState(!!localStorage.getItem("admin-login"));
   const [userlogin,setUserLogin] = useState(!!localStorage.getItem("user-login"))
@@ -41,6 +44,7 @@ function App() {
         {/* user login and signup  */}
         <Route path="/user-signup" element={<UserSignUp setLogin={setUserLogin}/>}/>
         <Route path="/user-login" element={<UserLogin setLogin={setUserLogin}/>}/>
+
         <Route path="/user-dashboard" element={<ProtectedUser><UserDashboard/></ProtectedUser>} />
         <Route path="/admin-dashboard" element={<ProtectedAdmin><AdminDashboard/></ProtectedAdmin>} />
         <Route path="/add-question/:eventId" element={<ProtectedAdmin><AddQuestion/></ProtectedAdmin>} />
@@ -48,6 +52,7 @@ function App() {
         <Route path="/update-question/:id/:eventId" element={<ProtectedAdmin><UpdateQuestion/></ProtectedAdmin>} />
         <Route path="/create-mcq-event" element={<ProtectedAdmin><CreateEvent/></ProtectedAdmin>} />
         <Route path="/create-event" element={<ProtectedAdmin><CreateOtherEvents/></ProtectedAdmin>} />
+        <Route path="/admin/leaderboard/:id" element={<ProtectedAdmin><AdminLeaderboard/></ProtectedAdmin>} />
         <Route path="/events" element={<ProtectedAdmin><AdminEvents/></ProtectedAdmin>} />
         <Route path="/event-registrations/:id" element={<ProtectedAdmin><AdminEventRegistrations/></ProtectedAdmin>} />
         {/* user public Routes */}
@@ -55,6 +60,7 @@ function App() {
         <Route path="/register-event/:id" element={<ProtectedUser><Register/></ProtectedUser>} />
         <Route path="/my-registrations" element={<ProtectedUser><RegisteredEvents/></ProtectedUser>} />
         <Route path="/mcq-questions/:id" element={<ProtectedUser><GetQuestion/></ProtectedUser>} />
+        <Route path="/thank-you" element={<ProtectedUser><ThankYouPage/></ProtectedUser>} />
       </Routes>
     </>
   );

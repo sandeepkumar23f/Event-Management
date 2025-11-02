@@ -146,7 +146,7 @@ export const updateQuestionEventId = async (req, res) => {
   try {
     const db = await connection();
     const collection = db.collection("questions");
-    const { id } = req.params; // Changed from questionId to id
+    const { id } = req.params; 
     const { description, options, correctOption, eventId } = req.body;
 
     console.log('Update question called with:', {
@@ -158,7 +158,6 @@ export const updateQuestionEventId = async (req, res) => {
       correctOption
     });
 
-    // Validate required fields
     if (!description?.trim() || !Array.isArray(options) || options.length !== 4) {
       return res.status(400).json({
         success: false,
@@ -173,7 +172,6 @@ export const updateQuestionEventId = async (req, res) => {
       });
     }
 
-    // Clean and validate options
     const cleanOptions = options
       .map((opt) => opt.trim())
       .filter((opt) => opt !== "");
@@ -200,7 +198,7 @@ export const updateQuestionEventId = async (req, res) => {
 
     const result = await collection.updateOne(
       {
-        _id: new ObjectId(id), // Now using id instead of questionId
+        _id: new ObjectId(id), 
         userId: new ObjectId(req.user._id),
         eventId: new ObjectId(eventId),
       },
@@ -222,7 +220,6 @@ export const updateQuestionEventId = async (req, res) => {
         message: "Question updated successfully",
       });
     } else {
-      // Check if question exists to provide better error message
       const existingQuestion = await collection.findOne({
         _id: new ObjectId(id),
         userId: new ObjectId(req.user._id),

@@ -17,7 +17,7 @@ export default function verifyJWTToken(req, res, next) {
     if (error) {
       return res.status(403).json({ success: false, message: "Invalid token" });
     }
-
+    console.log("Decoded token:", decoded); 
     req.user = decoded;
     next();
   });

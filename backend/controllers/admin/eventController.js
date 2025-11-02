@@ -5,8 +5,8 @@ import { connection } from "../../config/dbconfig.js";
 
 export const createMcqEvent = async (req, res) => {
   try {
-    const { name, description, date } = req.body;
-    if (!name || !description || !date) {
+    const { name, description, date, location } = req.body;
+    if (!name || !description || !date || !location) {
       res.status(400).send({
         success: false,
         message: "All fields are required",
@@ -18,6 +18,7 @@ export const createMcqEvent = async (req, res) => {
       name,
       description,
       date: new Date(date),
+      location,
       createdBy: new ObjectId(req.user._id),
       createdAt: new Date(),
     };
@@ -113,6 +114,7 @@ export const updateEventById = async (req, res) => {
     if (name) updateFields.name = name;
     if (description) updateFields.description = description;
     if (date) updateFields.date = new Date(date);
+    if (location) updateFields.location = location;
 
     const result = await collection.updateOne(
       { _id: new ObjectId(id), createdBy: new ObjectId(req.user._id) },

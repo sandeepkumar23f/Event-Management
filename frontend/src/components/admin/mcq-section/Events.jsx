@@ -11,6 +11,7 @@ export default function AdminEvents() {
     fetchEvents();
   }, []);
 
+  // Fetch all events for admin
   const fetchEvents = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/events", {
@@ -28,15 +29,19 @@ export default function AdminEvents() {
     }
   };
 
+  // Delete Event
   const deleteEvent = async (eventId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/events/delete/${eventId}`, {
-        method: "DELETE",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/events/delete/${eventId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       const data = await res.json();
       if (data.success) {
         alert("Event deleted successfully!");
@@ -48,14 +53,18 @@ export default function AdminEvents() {
     }
   };
 
+  // Update Event
   const updateEvent = async (eventId, updatedData) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/events/update/${eventId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(updatedData),
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/events/update/${eventId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(updatedData),
+        }
+      );
       const data = await res.json();
       if (data.success) {
         alert("Event updated successfully!");
@@ -68,12 +77,21 @@ export default function AdminEvents() {
     }
   };
 
+  // Navigate to leaderboard page
+  const viewLeaderBoard = (eventId) => {
+    navigate(`/admin/leaderboard/${eventId}`);
+  };
+
+  // Start contest
   const startContest = async (eventId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/events/start/${eventId}`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/events/start/${eventId}`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
       const data = await res.json();
       if (data.success) {
         alert("Contest started successfully!");
@@ -85,6 +103,7 @@ export default function AdminEvents() {
     }
   };
 
+  // Loader
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen text-gray-600 text-lg">
@@ -130,7 +149,7 @@ export default function AdminEvents() {
                       className="w-full p-2 border rounded mb-2"
                       onChange={(e) => (event.date = e.target.value)}
                     />
-                    
+
                     <div className="flex gap-2">
                       <button
                         onClick={() => updateEvent(event._id, event)}
@@ -207,6 +226,13 @@ export default function AdminEvents() {
                         className="bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
                       >
                         Delete
+                      </button>
+
+                      <button
+                        onClick={() => viewLeaderBoard(event._id)}
+                        className="col-span-2 bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 transition"
+                      >
+                        LeaderBoard
                       </button>
 
                       <button

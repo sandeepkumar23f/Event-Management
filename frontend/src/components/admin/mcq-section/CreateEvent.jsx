@@ -5,7 +5,7 @@ export default function CreateEvent() {
   const [eventName, setEventName] = useState("");
   const [eventDesc, setEventDesc] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const [capacity, setCapacity] = useState("");
+  const [eventlocation, setEventLocation] = useState("");
 
   const navigate = useNavigate(); 
   const handleSubmit = async (e) => {
@@ -15,7 +15,7 @@ export default function CreateEvent() {
       name: eventName,
       description: eventDesc,
       date: eventDate,
-      capacity,
+      location: eventlocation,
     };
 
     try {
@@ -33,7 +33,7 @@ export default function CreateEvent() {
         setEventName("");
         setEventDesc("");
         setEventDate("");
-        setCapacity("");
+        setEventLocation("");
 
         // Redirect to events page
         navigate("/events");
@@ -78,6 +78,17 @@ export default function CreateEvent() {
             type="date"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium text-gray-700">Event Location</label>
+          <input
+            type="text"
+            value={eventlocation}
+            onChange={(e) => setEventLocation(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
             required
           />
