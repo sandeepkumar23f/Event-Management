@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function RegisteredEvents() {
   const [events, setEvents] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchRegistered = async () => {
       const token = localStorage.getItem("token");
@@ -16,6 +16,9 @@ export default function RegisteredEvents() {
     fetchRegistered();
   }, []);
 
+  const attendQuiz = (eventId) =>{
+    navigate(`/mcq-questions/${eventId}`);
+  }
   return (
     <div className="min-h-screen bg-blue-50 p-8">
       <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
@@ -36,8 +39,10 @@ export default function RegisteredEvents() {
                 {new Date(e.date).toLocaleDateString()}
               </p>
               <p className="text-gray-700 mt-2">{e.description}</p>
-              <button className="mt-3 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-                View Details
+              <button
+              onClick={()=> attendQuiz(e._id)}
+               className="mt-3 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                Attend
               </button>
             </div>
           ))}

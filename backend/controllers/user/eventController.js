@@ -52,7 +52,6 @@ export const exploreEventById = async (req, res) => {
     const db = await connection();
     const eventsCollection = db.collection("events");
 
-    // Use try-catch for the database query
     const event = await eventsCollection.findOne({ 
       _id: new ObjectId(id) 
     });

@@ -57,7 +57,7 @@ export const userLogin = async (req, res) => {
         });
         res
           .status(200)
-          .send({ success: true, message: "User Login Successfully done" });
+          .send({ success: true, message: "User Login Successfully done",token });
       });
     } else {
       res.send({
