@@ -21,11 +21,13 @@ export default function AdminLeaderboard() {
           setError(data.message || "Failed to load leaderboard");
         }
       } catch (err) {
+        console.error("Error fetching leaderboard:", err);
         setError("Failed to load leaderboard");
       } finally {
         setLoading(false);
       }
     };
+
     fetchLeaderboard();
   }, [id]);
 
@@ -40,46 +42,52 @@ export default function AdminLeaderboard() {
         🏆 {eventName} Leaderboard
       </h1>
       <p className="text-center text-gray-600 mb-6">
-        Check the top performers for this event!
+        Check out the top performers for this event!
       </p>
 
       {leaderboard.length === 0 ? (
         <p className="text-center text-gray-600">No submissions yet.</p>
       ) : (
-        <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow-md">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-indigo-600 text-white">
-                <th className="p-3 text-left rounded-tl-lg">Rank</th>
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Score</th>
-                <th className="p-3 text-left rounded-tr-lg">Submitted At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboard.map((entry, idx) => (
-                <tr
-                  key={idx}
-                  className={`border-b hover:bg-indigo-50 transition ${
-                    idx === 0
-                      ? "bg-yellow-50 font-semibold text-yellow-700"
-                      : idx === 1
-                      ? "bg-gray-50 text-gray-700"
-                      : idx === 2
-                      ? "bg-orange-50 text-orange-700"
-                      : ""
-                  }`}
-                >
-                  <td className="p-3">{idx + 1}</td>
-                  <td className="p-3">{entry.userName}</td>
-                  <td className="p-3">{entry.score}</td>
-                  <td className="p-3">
-                    {new Date(entry.submittedAt).toLocaleString()}
-                  </td>
+        <div className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-md">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-indigo-600 text-white">
+                  <th className="p-3 text-left rounded-tl-lg">Rank</th>
+                  <th className="p-3 text-left">Name</th>
+                  <th className="p-3 text-left">Email</th>
+                  <th className="p-3 text-left">Score</th>
+                  <th className="p-3 text-left rounded-tr-lg">Submitted At</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {leaderboard.map((entry, idx) => (
+                  <tr
+                    key={idx}
+                    className={`border-b hover:bg-indigo-50 transition ${
+                      idx === 0
+                        ? "bg-yellow-50 font-semibold text-yellow-700"
+                        : idx === 1
+                        ? "bg-gray-50 text-gray-700"
+                        : idx === 2
+                        ? "bg-orange-50 text-orange-700"
+                        : ""
+                    }`}
+                  >
+                    <td className="p-3">{idx + 1}</td>
+                    <td className="p-3">{entry.userName || "Anonymous"}</td>
+                    <td className="p-3 text-gray-600">
+                      {entry.email || "Not provided"}
+                    </td>
+                    <td className="p-3 font-medium">{entry.score}</td>
+                    <td className="p-3 text-sm text-gray-500">
+                      {new Date(entry.submittedAt).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

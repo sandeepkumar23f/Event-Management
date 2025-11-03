@@ -12,9 +12,12 @@ export const submitQuiz = async (req, res) => {
     const submissionsCollections = db.collection("submissions");
     const usersCollection = db.collection("users");
 
+    // find user
     const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
     const userName = user?.name || "Anonymous";
+    const email = user?.email || "No Email";
 
+    // check already submitted
     const existingSubmission = await submissionsCollections.findOne({
       eventId: new ObjectId(eventId),
       userId: new ObjectId(userId),
@@ -27,6 +30,7 @@ export const submitQuiz = async (req, res) => {
       });
     }
 
+    // fetch questions for that event
     const questions = await questionCollections
       .find({ eventId: new ObjectId(eventId) })
       .toArray();
@@ -39,13 +43,25 @@ export const submitQuiz = async (req, res) => {
     }
 
     let score = 0;
+
     questions.forEach((q) => {
-      if (answers[q._id] === q.correctAnswer) score++;
-    });
+  const qid = q._id.toString();
+  const userAnswer = answers[qid]?.trim().toUpperCase();
+  const correctIndex = q.correctOption?.toUpperCase().charCodeAt(0) - 65;
+  const correctText = q.options[correctIndex]?.trim().toUpperCase();
+
+  console.log("QUESTION:", q.description);
+  console.log("USER ANSWER:", userAnswer);
+  console.log("CORRECT TEXT:", correctText);
+
+  if (userAnswer && userAnswer === correctText) score++;
+});
+
 
     await submissionsCollections.insertOne({
       userId: new ObjectId(userId),
-      userName, 
+      userName,
+      email,
       eventId: new ObjectId(eventId),
       score,
       total: questions.length,
@@ -67,6 +83,8 @@ export const submitQuiz = async (req, res) => {
     });
   }
 };
+
+
 
 
 export const checkSubmission = async(req,res)=>{

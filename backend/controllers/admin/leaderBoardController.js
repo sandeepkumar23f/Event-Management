@@ -15,6 +15,7 @@ export const leaderBoard = async (req, res) => {
       });
     }
 
+    //  Find event
     const event = await eventsCollections.findOne({
       _id: new ObjectId(eventId),
     });
@@ -26,22 +27,27 @@ export const leaderBoard = async (req, res) => {
       });
     }
 
-    //  Fetch submissions for the event and sort by score (descending)
+    //  Get all submissions sorted by score (desc) and time (asc for tiebreak)
     const submissions = await submissionsCollections
       .find({ eventId: new ObjectId(eventId) })
-      .sort({ score: -1 })
+      .sort({ score: -1, createdAt: 1 })
       .toArray();
+
+    //  Building leaderboard data
+    const leaderboard = submissions.map((sub, index) => ({
+      rank: index + 1,
+      userName: sub.userName || "Anonymous",
+      email: sub.email || "Not provided",
+      score: sub.score,
+      total: sub.total || 0,
+      submittedAt: sub.createdAt,
+    }));
 
     res.status(200).json({
       success: true,
-      count: submissions.length,
+      count: leaderboard.length,
       eventName: event.eventname || event.title || "Event",
-      leaderboard: submissions.map((sub, index) => ({
-        rank: index + 1,
-        userName: sub.userName || "Anonymous",
-        score: sub.score,
-        submittedAt: sub.createdAt,
-      })),
+      leaderboard,
     });
   } catch (err) {
     console.error("Error fetching event submissions:", err.message);

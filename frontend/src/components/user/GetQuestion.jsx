@@ -104,7 +104,6 @@ export default function GetQuestion() {
 
       const data = await res.json();
       if (data.success) {
-        alert(`Quiz submitted. Score: ${data.score}/${data.total}`);
         navigate("/thank-you");
       } else {
         alert(`Submission failed: ${data.message}`);
