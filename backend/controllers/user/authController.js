@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 import { connection } from "../../config/dbconfig.js";
+const SECRET_KEY = process.env.JWT_SECRET;
 
 // user signup
 export const userSignup = async (req, res) => {
@@ -16,7 +17,7 @@ export const userSignup = async (req, res) => {
         email: userData.email,
       };
 
-      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+      jwt.sign(tokenData, SECRET_KEY, { expiresIn: "5d" }, (error, token) => {
         if (error)
           return res.status(500).send({ success: false, message: "JWT error" });
 
@@ -44,7 +45,7 @@ export const userLogin = async (req, res) => {
     });
     if (result) {
       const tokenData = { _id: result._id.toString(), email: result.email };
-      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+      jwt.sign(tokenData, SECRET_KEY, { expiresIn: "5d" }, (error, token) => {
         if (error)
           return res
             .status(500)

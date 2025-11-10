@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { connection } from "../../config/dbconfig.js";
 
 // function of admin login
+const SECRET_KEY = process.env.JWT_SECRET;
 export const adminSignUp = async (req, res) => {
   const adminData = req.body;
   if (adminData.email && adminData.password) {
@@ -16,7 +17,7 @@ export const adminSignUp = async (req, res) => {
         email: adminData.email,
       };
 
-      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+      jwt.sign(tokenData, SECRET_KEY, { expiresIn: "5d" }, (error, token) => {
         if (error)
           return res.status(500).send({ success: false, message: "JWT error" });
 
@@ -45,7 +46,7 @@ export const adminLogin = async (req, res) => {
     });
     if (result) {
       const tokenData = { _id: result._id.toString(), email: result.email };
-      jwt.sign(tokenData, "Google", { expiresIn: "5d" }, (error, token) => {
+      jwt.sign(tokenData, SECRET_KEY, { expiresIn: "5d" }, (error, token) => {
         if (error)
           return res
             .status(500)
