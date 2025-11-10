@@ -9,7 +9,7 @@ export default function UpdateQuestion() {
     correctOption: "",
   });
   const [loading, setLoading] = useState(false);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
   // Fetch the existing question data
@@ -17,7 +17,7 @@ export default function UpdateQuestion() {
     const fetchQuestion = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/questions/${questionId}`,
+          `${API_URL}/api/questions/${questionId}`,
           { 
             method: "GET",
             credentials: "include" 
@@ -68,7 +68,7 @@ export default function UpdateQuestion() {
 
   try {
     const res = await fetch(
-      `http://localhost:5000/api/questions/${questionId}`, 
+      `${API_URL}/api/questions/${questionId}`, 
       {
         method: "PUT",
         credentials: "include",

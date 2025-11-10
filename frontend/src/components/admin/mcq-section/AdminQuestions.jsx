@@ -4,14 +4,14 @@ import { Link, useParams } from "react-router-dom";
 export default function AdminQuestions() {
   const { eventId } = useParams();
   const [questions, setQuestions] = useState([]);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     if (eventId) fetchQuestions();
   }, [eventId]);
 
   const fetchQuestions = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/questions/all/${eventId}`, {
+      const res = await fetch(`${API_URL}/api/questions/all/${eventId}`, {
         credentials: "include",
         cache: "no-store",
       });
@@ -27,7 +27,7 @@ export default function AdminQuestions() {
 
   const deleteQuestion = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/questions/delete/${id}/${eventId}`, {
+      const res = await fetch(`${API_URL}/api/questions/delete/${id}/${eventId}`, {
         method: "DELETE",
         credentials: "include",
       });

@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 export default function RegisteredEvents() {
   const [events, setEvents] = useState([]);
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchRegistered = async () => {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/events/registrations`, {
+      const res = await fetch(`${API_URL}/api/events/registrations`, {
         credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       });

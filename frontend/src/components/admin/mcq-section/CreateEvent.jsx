@@ -8,7 +8,7 @@ export default function CreateEvent() {
   const [eventLocation, setEventLocation] = useState("");
   const [eventDuration, setEventDuration] = useState("");
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -27,7 +27,7 @@ export default function CreateEvent() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/events/create", {
+      const res = await fetch(`${API_URL}/api/events/create`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -37,7 +37,7 @@ export default function CreateEvent() {
       const data = await res.json();
 
       if (data.success) {
-        alert("✅ Event created successfully!");
+        alert(" Event created successfully!");
         // Clear form
         setEventName("");
         setEventDesc("");

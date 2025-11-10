@@ -7,6 +7,7 @@ export default function AdminEventRegistrations() {
   const [eventName, setEventName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -14,7 +15,7 @@ export default function AdminEventRegistrations() {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          `http://localhost:5000/api/events/event-registrations/${id}`,
+          `${API_URL}/${id}`,
           {
             method: "GET",
             credentials: "include",

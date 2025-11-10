@@ -11,12 +11,12 @@ export default function GetQuestion() {
   const [timeLeft, setTimeLeft] = useState(0); 
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const checkIfSubmitted = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/submissions/check/${id}`,
+          `${API_URL}/api/submissions/check/${id}`,
           {
             method: "GET",
             credentials: "include",
@@ -38,7 +38,7 @@ export default function GetQuestion() {
     const fetchQuestions = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/questions/user-questions/${id}`,
+          `${API_URL}/api/questions/user-questions/${id}`,
           {
             method: "GET",
             credentials: "include",
@@ -82,7 +82,7 @@ export default function GetQuestion() {
   const handleAutoSubmit = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/submissions/submit/${id}`,
+        `${API_URL}/api/submissions/submit/${id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ export default function GetQuestion() {
   const handleSubmit = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/submissions/submit/${id}`,
+        `${API_URL}/api/submissions/submit/${id}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

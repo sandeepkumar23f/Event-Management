@@ -6,14 +6,14 @@ export default function ExploreEvents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const token = localStorage.getItem("token");
         console.log("Fetching events from /api/events/explore...");
         
-        const res = await fetch("http://localhost:5000/api/events/explore", {
+        const res = await fetch(`${API_URL}/api/events/explore`, {
           headers: { 
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"

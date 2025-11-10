@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 export default function AdminNavbar({ login, setLogin }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-
   const logout = () => {
     localStorage.removeItem("admin-login");
     setLogin(false);

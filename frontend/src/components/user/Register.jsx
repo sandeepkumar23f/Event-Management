@@ -8,14 +8,15 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [registering, setRegistering] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL;
   const [user, setUser] = useState({ name: "", email: "", password: "" });
-
+  
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch(`http://localhost:5000/api/events/explore/${id}`, {
+        const res = await fetch(`${API_URL}/api/events/explore/${id}`, {
           credentials: "include",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -49,7 +50,7 @@ export default function RegisterPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`http://localhost:5000/api/events/register/${id}`, {
+      const res = await fetch(`${API_URL}/api/events/register/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

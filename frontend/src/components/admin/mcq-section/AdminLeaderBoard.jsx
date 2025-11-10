@@ -7,11 +7,11 @@ export default function AdminLeaderboard() {
   const [eventName, setEventName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/leaderboard/${id}`);
+        const res = await fetch(`${API_URL}/api/leaderboard/${id}`);
         const data = await res.json();
 
         if (data.success) {

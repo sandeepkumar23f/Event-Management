@@ -7,7 +7,7 @@ export default function AdminEvents() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [activeTimers, setActiveTimers] = useState({});
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -58,7 +58,7 @@ export default function AdminEvents() {
   const updateEvent = async (eventId, updatedData) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/events/update/${eventId}`,
+        `${API_URL}/api/events/update/${eventId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -87,7 +87,7 @@ export default function AdminEvents() {
   const startContest = async (eventId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/events/start-contest/${eventId}`,
+        `${API_URL}/api/events/start-contest/${eventId}`,
         {
           method: "POST",
           credentials: "include",

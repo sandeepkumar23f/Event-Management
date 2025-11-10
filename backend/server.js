@@ -10,11 +10,23 @@ import leaderBoardRoutes from "./routes/leaderBoardRoutes.js"
 import submissionsRoutes from "./routes/submissionsRoutes.js"
 dotenv.config();
 const app = express();
+const allowedOrigin = [
+  "http://localhost:5173/",
+  "https://quiz-arena-gecsv.onrender.com"
+]
 const port = process.env.PORT || 5000;
+const SECRET_KEY = process.env.JWT_SECRET;
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, origin);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
 app.use(express.json());

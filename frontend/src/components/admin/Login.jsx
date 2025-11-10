@@ -7,7 +7,7 @@ export default function AdminLogin() {
     password: "",
   });
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleLogin = async () => {
     if (!userData.email || !userData.password) {
       alert("All fields are required");
@@ -15,7 +15,7 @@ export default function AdminLogin() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/admin-login", {
+      const response = await fetch(`${API_URL}api/auth/admin-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),

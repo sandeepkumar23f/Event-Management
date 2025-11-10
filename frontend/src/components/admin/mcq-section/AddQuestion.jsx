@@ -8,9 +8,8 @@ export default function AddQuestion() {
     options: ["", "", "", ""],
     correctOption: "", 
   });
-
   const navigate = useNavigate();
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleDescriptionChange = (e) => {
     setFormData({ ...formData, description: e.target.value });
   };
@@ -45,7 +44,7 @@ export default function AddQuestion() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/questions/add/${eventId}`, 
+        `${API_URL}/api/questions/add/${eventId}`, 
         {
           method: "POST",
           credentials: "include",
