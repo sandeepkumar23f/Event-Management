@@ -5,6 +5,7 @@ export default function AdminEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [activeTimers, setActiveTimers] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export default function AdminEvents() {
   const startContest = async (eventId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/events/start/${eventId}`,
+        `http://localhost:5000/api/events/start-contest/${eventId}`,
         {
           method: "POST",
           credentials: "include",
@@ -94,13 +95,52 @@ export default function AdminEvents() {
       );
       const data = await res.json();
       if (data.success) {
-        alert("Contest started successfully!");
-        fetchEvents();
+        alert(data.message);
+        const { startTime, duration } = data;
+        startCountdown(eventId, startTime, duration);
       } else alert(data.message || "Failed to start contest");
     } catch (err) {
       console.error(err);
       alert("Server error, please try again later");
     }
+  };
+
+  const startCountdown = (eventId, startTime, duration) => {
+    const endTime = startTime + duration;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = endTime - now;
+
+      setActiveTimers((prev) => ({
+        ...prev,
+        [eventId]: remaining > 0 ? remaining : 0,
+      }));
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        setActiveTimers((prev) => {
+          const updated = { ...prev };
+          delete updated[eventId];
+          return updated;
+        });
+        alert(`Contest for event ${eventId} ended automatically!`);
+      }
+    };
+
+    updateTimer(); // run once immediately
+    const interval = setInterval(updateTimer, 1000);
+  };
+
+  // Format time (mm:ss)
+  const formatTime = (ms) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   // Loader
@@ -125,127 +165,169 @@ export default function AdminEvents() {
           </p>
         ) : (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {events.map((event, index) => (
-              <div
-                key={event._id}
-                className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6"
-              >
-                {editingEvent === event._id ? (
-                  <div>
-                    <input
-                      type="text"
-                      defaultValue={event.name}
-                      className="w-full p-2 border rounded mb-2"
-                      onChange={(e) => (event.name = e.target.value)}
-                    />
-                    <textarea
-                      defaultValue={event.description}
-                      className="w-full p-2 border rounded mb-2"
-                      onChange={(e) => (event.description = e.target.value)}
-                    />
-                    <input
-                      type="datetime-local"
-                      defaultValue={event.date?.slice(0, 16)}
-                      className="w-full p-2 border rounded mb-2"
-                      onChange={(e) => (event.date = e.target.value)}
-                    />
+            {events.map((event, index) => {
+              const timeLeft = activeTimers[event._id];
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => updateEvent(event._id, event)}
-                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingEvent(null)}
-                        className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center mb-3">
-                      <h2 className="text-xl font-semibold text-indigo-900">
-                        {index + 1}. {event.name}
-                      </h2>
-                      <span
-                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          event.status === "started"
-                            ? "bg-green-100 text-green-700"
-                            : event.status === "upcoming"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {event.status || "upcoming"}
-                      </span>
-                    </div>
+              return (
+                <div
+                  key={event._id}
+                  className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6"
+                >
+                  {editingEvent === event._id ? (
+                    <div>
+                      {/* Name */}
+                      <input
+                        type="text"
+                        defaultValue={event.name}
+                        className="w-full p-2 border rounded mb-2"
+                        placeholder="Event Name"
+                        onChange={(e) => (event.name = e.target.value)}
+                      />
 
-                    <p className="text-gray-700 mb-2">{event.description}</p>
+                      {/* Description */}
+                      <textarea
+                        defaultValue={event.description}
+                        className="w-full p-2 border rounded mb-2"
+                        placeholder="Event Description"
+                        onChange={(e) => (event.description = e.target.value)}
+                      />
 
-                    <div className="text-sm text-gray-600 space-y-1 mb-4">
-                      <p>
-                        <strong>Date:</strong>{" "}
-                        {new Date(event.date).toLocaleString()}
-                      </p>
-                      <p>
-                        <strong>Registered:</strong>{" "}
-                        {event.participants?.length || 0}
-                      </p>
-                    </div>
+                      {/* Date & Time */}
+                      <input
+                        type="datetime-local"
+                        defaultValue={event.date?.slice(0, 16)}
+                        className="w-full p-2 border rounded mb-2"
+                        onChange={(e) => (event.date = e.target.value)}
+                      />
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => navigate(`/questions/${event._id}`)}
-                        className="bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
-                      >
-                        Questions
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          navigate(`/event-registrations/${event._id}`)
+                      <input
+                        type="number"
+                        min="1"
+                        defaultValue={event.duration}
+                        className="w-full p-2 border rounded mb-2"
+                        placeholder="Duration (in minutes)"
+                        onChange={(e) =>
+                          (event.duration = parseInt(e.target.value))
                         }
-                        className="bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
-                      >
-                        Registrations
-                      </button>
+                      />
 
-                      <button
-                        onClick={() => setEditingEvent(event._id)}
-                        className="bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => deleteEvent(event._id)}
-                        className="bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
-                      >
-                        Delete
-                      </button>
-
-                      <button
-                        onClick={() => viewLeaderBoard(event._id)}
-                        className="col-span-2 bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 transition"
-                      >
-                        LeaderBoard
-                      </button>
-
-                      <button
-                        onClick={() => startContest(event._id)}
-                        className="col-span-2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
-                      >
-                        Start Contest
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateEvent(event._id, event)}
+                          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingEvent(null)}
+                          className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </>
-                )}
-              </div>
-            ))}
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-3">
+                        <h2 className="text-xl font-semibold text-indigo-900">
+                          {index + 1}. {event.name}
+                        </h2>
+                        <span
+                          className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                            timeLeft
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {timeLeft ? "Running" : "Idle"}
+                        </span>
+                      </div>
+
+                      <p className="text-gray-700 mb-2">{event.description}</p>
+
+                      <div className="text-sm text-gray-600 space-y-1 mb-4">
+                        <p>
+                          <strong>Date:</strong>{" "}
+                          {new Date(event.date).toLocaleString()}
+                        </p>
+                        <p>
+                          <strong>Duration:</strong> {event.duration} mins
+                        </p>
+                        <p>
+                          <strong>Registered:</strong>{" "}
+                          {event.registrationCount ??
+                            event.registrations?.length ??
+                            0}{" "}
+                          participants
+                        </p>
+                      </div>
+
+                      {/* Countdown timer display */}
+                      {timeLeft && (
+                        <p className="text-green-700 font-bold text-lg mb-2">
+                          Ends in: {formatTime(timeLeft)}
+                        </p>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => navigate(`/questions/${event._id}`)}
+                          className="bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
+                        >
+                          Questions
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            navigate(`/event-registrations/${event._id}`)
+                          }
+                          className="bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+                        >
+                          Registrations
+                        </button>
+
+                        <button
+                          onClick={() => setEditingEvent(event._id)}
+                          className="bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition"
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          onClick={() => deleteEvent(event._id)}
+                          className="bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
+                        >
+                          Delete
+                        </button>
+
+                        <button
+                          onClick={() => viewLeaderBoard(event._id)}
+                          className="col-span-2 bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 transition"
+                        >
+                          LeaderBoard
+                        </button>
+
+                        {timeLeft ? (
+                          <button
+                            disabled
+                            className="col-span-2 bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed"
+                          >
+                            Contest Running...
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => startContest(event._id)}
+                            className="col-span-2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+                          >
+                            Start Contest
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
 import { connection } from "../../config/dbconfig.js";
-import { ObjectId } from 'mongodb'; // Make sure this import is correct
+import { ObjectId } from 'mongodb'; 
 
 export const eventUser = async (req, res) => {
   try {

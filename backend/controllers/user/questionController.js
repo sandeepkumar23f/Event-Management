@@ -41,6 +41,7 @@ export const userQuestionsById = async(req,res)=>{
             success: true,
             message: "Event Questions fetched successfully",
             questions,
+            duration: event.duration || 1,
         })
     }
     catch(error){

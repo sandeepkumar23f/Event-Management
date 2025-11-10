@@ -5,17 +5,25 @@ export default function CreateEvent() {
   const [eventName, setEventName] = useState("");
   const [eventDesc, setEventDesc] = useState("");
   const [eventDate, setEventDate] = useState("");
-  const [eventlocation, setEventLocation] = useState("");
+  const [eventLocation, setEventLocation] = useState("");
+  const [eventDuration, setEventDuration] = useState("");
+  const navigate = useNavigate();
 
-  const navigate = useNavigate(); 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validation
+    if (parseInt(eventDuration) <= 0) {
+      alert("Duration must be greater than 0 minutes");
+      return;
+    }
+
     const eventData = {
-      name: eventName,
-      description: eventDesc,
+      name: eventName.trim(),
+      description: eventDesc.trim(),
       date: eventDate,
-      location: eventlocation,
+      location: eventLocation.trim(),
+      duration: parseInt(eventDuration),
     };
 
     try {
@@ -29,12 +37,13 @@ export default function CreateEvent() {
       const data = await res.json();
 
       if (data.success) {
-        alert("Event created successfully!");
+        alert("✅ Event created successfully!");
+        // Clear form
         setEventName("");
         setEventDesc("");
         setEventDate("");
         setEventLocation("");
-
+        setEventDuration("");
         // Redirect to events page
         navigate("/events");
       } else {
@@ -48,7 +57,9 @@ export default function CreateEvent() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-indigo-800">Create Event</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-indigo-800">
+        Create Event
+      </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -68,14 +79,15 @@ export default function CreateEvent() {
             value={eventDesc}
             onChange={(e) => setEventDesc(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            rows="4"
             required
           />
         </div>
 
         <div>
-          <label className="block font-medium text-gray-700">Event Date</label>
+          <label className="block font-medium text-gray-700">Event Date & Time</label>
           <input
-            type="date"
+            type="datetime-local"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
@@ -84,12 +96,27 @@ export default function CreateEvent() {
         </div>
 
         <div>
-          <label className="block font-medium text-gray-700">Event Location</label>
+          <label className="block font-medium text-gray-700">Location</label>
           <input
             type="text"
-            value={eventlocation}
+            value={eventLocation}
             onChange={(e) => setEventLocation(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium text-gray-700">
+            Duration (in minutes)
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={eventDuration}
+            onChange={(e) => setEventDuration(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            placeholder="e.g., 60"
             required
           />
         </div>

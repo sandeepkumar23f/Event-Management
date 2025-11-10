@@ -4,8 +4,9 @@ import {
   deleteEventById,
   events,
   eventsById,
-  startEvent,
   updateEventById,
+  startContest,
+  contestStatus
 } from "../controllers/admin/eventController.js";
 import { eventUser, exploreEventById } from "../controllers/user/eventController.js";
 import {
@@ -23,7 +24,8 @@ router.get("/", verifyJWTToken, events);
 router.get("/event-registrations/:id", verifyJWTToken, viewRegistration);
 router.put("/update/:id", verifyJWTToken, updateEventById);
 router.delete("/delete/:id", verifyJWTToken, deleteEventById);
-router.post("/start/:id", verifyJWTToken, startEvent);
+router.post("/start-contest/:id",startContest);
+router.get("/contest-status/:id",contestStatus)
 
 
 // ---------- USER ROUTES ----------

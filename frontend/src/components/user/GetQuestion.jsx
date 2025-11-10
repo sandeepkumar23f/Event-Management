@@ -2,30 +2,31 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 export default function GetQuestion() {
-  const { id } = useParams(); // eventId
+  const { id } = useParams();
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [timeLeft, setTimeLeft] = useState(0); 
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const navigate = useNavigate();
 
-  //  Check if user already submitted
   useEffect(() => {
     const checkIfSubmitted = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/submissions/check/${id}`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const res = await fetch(
+          `http://localhost:5000/api/submissions/check/${id}`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         const data = await res.json();
-        if (data.submitted) {
-          setAlreadySubmitted(true);
-        }
+        if (data.submitted) setAlreadySubmitted(true);
       } catch (error) {
         console.error("Error checking submission:", error.message);
       }
@@ -33,7 +34,6 @@ export default function GetQuestion() {
     checkIfSubmitted();
   }, [id]);
 
-  // Fetch questions only if not already submitted
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -45,10 +45,10 @@ export default function GetQuestion() {
           }
         );
         const data = await res.json();
-        if (!data.success) {
-          setError(data.message);
-        } else {
-          setQuestions(data.questions);
+        if (!data.success) setError(data.message);
+        else{
+           setQuestions(data.questions);
+           setTimeLeft((data.duration || 1) * 60)
         }
       } catch (error) {
         setError("Failed to fetch event questions");
@@ -57,26 +57,86 @@ export default function GetQuestion() {
       }
     };
 
-    if (!alreadySubmitted) {
-      fetchQuestions();
-    } else {
-      setLoading(false);
-    }
+    if (!alreadySubmitted) fetchQuestions();
+    else setLoading(false);
   }, [id, alreadySubmitted]);
 
-  if (loading) return <p className="text-center mt-10 text-gray-500">Loading...</p>;
+  useEffect(() => {
+  if (loading || alreadySubmitted || timeLeft <= 0) return;
+
+  const timer = setInterval(() => {
+    setTimeLeft((prev) => {
+      if (prev <= 1) {
+        clearInterval(timer);
+        handleAutoSubmit();
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [loading, alreadySubmitted, timeLeft]); 
+
+
+  const handleAutoSubmit = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/submissions/submit/${id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ answers }),
+        }
+      );
+      await res.json();
+      navigate("/thank-you");
+    } catch (error) {
+      console.error("Error submitting quiz:", error.message);
+      navigate("/thank-you");
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/submissions/submit/${id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ answers }),
+        }
+      );
+      const data = await res.json();
+      if (data.success) navigate("/thank-you");
+      else alert(`Submission failed: ${data.message}`);
+    } catch (error) {
+      console.error("Error submitting quiz:", error.message);
+      alert("Server error during submission");
+    }
+  };
+
+  const handleAnswerSelect = (questionId, option) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: option,
+    }));
+  };
+
+  if (loading)
+    return <p className="text-center mt-10 text-gray-500">Loading...</p>;
   if (alreadySubmitted)
     return (
       <div className="text-center mt-20">
-        <h1 className="text-2xl text-red-600 font-bold">You have already submitted this quiz!</h1>
+        <h1 className="text-2xl text-red-600 font-bold">
+          You have already submitted this quiz!
+        </h1>
       </div>
     );
-
   if (error)
-    return (
-      <p className="text-center mt-10 text-red-500 font-medium">{error}</p>
-    );
-
+    return <p className="text-center mt-10 text-red-500 font-medium">{error}</p>;
   if (questions.length === 0)
     return (
       <p className="text-center mt-10 text-gray-600">
@@ -86,37 +146,15 @@ export default function GetQuestion() {
 
   const currentQuestion = questions[currentIndex];
 
-  const handleAnswerSelect = (questionId, option) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: option,
-    }));
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/submissions/submit/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ answers }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        navigate("/thank-you");
-      } else {
-        alert(`Submission failed: ${data.message}`);
-      }
-    } catch (error) {
-      console.error("Error submitting quiz:", error.message);
-      alert("Server error during submission");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-6">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-2xl">
+        {/*  Timer */}
+        <div className="text-right text-lg font-semibold text-indigo-700 mb-4">
+          Time Left: {Math.floor(timeLeft / 60)}:
+          {(timeLeft % 60).toString().padStart(2, "0")}
+        </div>
+
         <h1 className="text-2xl font-bold text-center text-indigo-700 mb-6">
           Event Quiz
         </h1>
@@ -142,7 +180,9 @@ export default function GetQuestion() {
                   name={`question-${currentQuestion._id}`}
                   value={option}
                   checked={answers[currentQuestion._id] === option}
-                  onChange={() => handleAnswerSelect(currentQuestion._id, option)}
+                  onChange={() =>
+                    handleAnswerSelect(currentQuestion._id, option)
+                  }
                   className="mr-2 hidden"
                 />
                 {option}
