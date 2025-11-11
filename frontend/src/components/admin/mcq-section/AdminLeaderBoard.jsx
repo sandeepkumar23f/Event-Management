@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 export default function AdminLeaderboard() {
-  const { id } = useParams(); // eventId
+  const { id } = useParams(); 
   const [leaderboard, setLeaderboard] = useState([]);
   const [eventName, setEventName] = useState("");
   const [loading, setLoading] = useState(true);

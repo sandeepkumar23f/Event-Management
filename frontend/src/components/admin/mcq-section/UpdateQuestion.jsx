@@ -77,7 +77,7 @@ export default function UpdateQuestion() {
           description: formData.description.trim(),
           options: formData.options.map(opt => opt.trim()),
           correctOption: formData.correctOption.trim().toUpperCase(),
-          eventId: eventId // Make sure this is the correct event ID
+          eventId: eventId
         }), 
       }
     );

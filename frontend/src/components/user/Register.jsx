@@ -8,9 +8,8 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [registering, setRegistering] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  const API_URL = import.meta.env.VITE_API_URL;
   const [user, setUser] = useState({ name: "", email: "", password: "" });
-  
+  const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchEvent = async () => {
       try {

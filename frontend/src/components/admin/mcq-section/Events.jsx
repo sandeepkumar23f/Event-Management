@@ -15,7 +15,7 @@ export default function AdminEvents() {
   // Fetch all events for admin
   const fetchEvents = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/events", {
+      const res = await fetch(`${API_URL}/api/events`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -36,7 +36,7 @@ export default function AdminEvents() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/events/delete/${eventId}`,
+        `${API_URL}/api/events/delete/${eventId}`,
         {
           method: "DELETE",
           credentials: "include",
