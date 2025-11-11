@@ -14,33 +14,33 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://quiz-arena-gecsv.onrender.com"
+  "https://quiz-arena-gecsv.onrender.com",
 ];
 
 const port = process.env.PORT || 5000;
 
-// CORS configuration
-app.use(cors({
-  origin: function(origin, callback) {
-    // allow requests with no origin like curl or mobile apps
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-}));
+// CORS middleware using allowedOrigins
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
 
-// Handle preflight OPTIONS requests for all routes
-app.options("*", cors());
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    return res.sendStatus(204); // Preflight requests respond immediately
+  }
+
+  next();
+});
 
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 
-// Connect database
+// Connect to database
 connection();
 
 // Routes
