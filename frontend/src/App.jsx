@@ -25,6 +25,7 @@ import CreateOtherEvents from "./components/admin/mcq-section/CreateOtherEvents"
 import GetQuestion from "./components/user/GetQuestion";
 import AdminLeaderboard from "./components/admin/mcq-section/AdminLeaderBoard";
 import ThankYouPage from "./components/user/ThankYouPage";
+import LandingPage from "./components/LandingPage";
 function App() {
   const [adminlogin, setAdminLogin] = useState(!!localStorage.getItem("admin-login"));
   const [userlogin,setUserLogin] = useState(!!localStorage.getItem("user-login"))
@@ -37,6 +38,7 @@ function App() {
        <UserNavbar login={userlogin} setUserLogin={setUserLogin}/>
      ) : null}
       <Routes>
+        <Route path="/" element={<LandingPage/>} />
         {/* admin login and signup  */}
         <Route path="/admin-signup" element={<AdminSignup setLogin={setAdminLogin}/>}/>
         <Route path="/admin-login" element={<AdminLogin setLogin={setAdminLogin}/>}/>
