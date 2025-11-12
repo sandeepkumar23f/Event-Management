@@ -15,7 +15,7 @@ export default function AdminEventRegistrations() {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          `${API_URL}/${id}`,
+          `${API_URL}/api/events/event-registrations/${id}`,
           {
             method: "GET",
             credentials: "include",
