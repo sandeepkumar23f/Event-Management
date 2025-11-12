@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
 export default function verifyJWTToken(req, res, next) {
   console.log("Cookies received:", req.cookies);
@@ -10,14 +10,19 @@ export default function verifyJWTToken(req, res, next) {
   }
 
   if (!token) {
+    console.warn("⚠️ No token found in cookies or headers");
     return res.status(401).json({ success: false, message: "No token found" });
   }
-  const secret = process.env.JWT_SECRET || "Google";
+
+  const secret = process.env.JWT_SECRET ?? "secret-code"; 
+
   jwt.verify(token, secret, (error, decoded) => {
     if (error) {
-      return res.status(403).json({ success: false, message: "Invalid token" });
+      console.error("Invalid token:", error.message);
+      return res.status(403).json({ success: false, message: "Invalid or expired token" });
     }
-    console.log("Decoded token:", decoded); 
+
+    console.log(" Decoded token:", decoded);
     req.user = decoded;
     next();
   });

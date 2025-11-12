@@ -2,9 +2,11 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 import { connection } from "../../config/dbconfig.js";
+import dotenv from "dotenv"
+dotenv.config()
 
 // function of admin login
-const SECRET_KEY = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET??"secret-code";
 export const adminSignUp = async (req, res) => {
   const adminData = req.body;
   if (adminData.email && adminData.password) {
@@ -17,14 +19,15 @@ export const adminSignUp = async (req, res) => {
         email: adminData.email,
       };
 
-      jwt.sign(tokenData, SECRET_KEY, { expiresIn: "5d" }, (error, token) => {
+      jwt.sign(tokenData, JWT_SECRET, { expiresIn: "5d" }, (error, token) => {
         if (error)
           return res.status(500).send({ success: false, message: "JWT error" });
 
         res.cookie("token", token, {
           httpOnly: true,
-          sameSite: "lax",
-          secure: false,
+          sameSite: "none",
+          secure: true,
+          path: "/",
           expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
         });
 
@@ -46,15 +49,18 @@ export const adminLogin = async (req, res) => {
     });
     if (result) {
       const tokenData = { _id: result._id.toString(), email: result.email };
-      jwt.sign(tokenData, SECRET_KEY, { expiresIn: "5d" }, (error, token) => {
+      console.log(tokenData, JWT_SECRET);
+      
+      jwt.sign(tokenData, JWT_SECRET, { expiresIn: "5d" }, (error, token) => {
         if (error)
           return res
             .status(500)
-            .send({ success: false, message: "Jwt eerror" });
+            .send({ success: false, message: "Jwt eerror", error:JSON.stringify(error) });
         res.cookie("token", token, {
           httpOnly: true,
           sameSite: "lax",
           secure: false,
+          path: "/",
           expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
         });
 

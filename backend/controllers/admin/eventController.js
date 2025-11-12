@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 import { connection } from "../../config/dbconfig.js";
-const SECRET_KEY = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
 export const createMcqEvent = async (req, res) => {
   try {
     const { name, description, date, location,duration } = req.body;

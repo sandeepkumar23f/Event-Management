@@ -23,7 +23,7 @@ export default function RegisteredEvents() {
   return (
     <div className="min-h-screen bg-blue-50 p-8">
       <h1 className="text-2xl font-bold text-center text-blue-700 mb-6">
-        🎯 Registered Events
+         Registered Events
       </h1>
 
       {events.length === 0 ? (

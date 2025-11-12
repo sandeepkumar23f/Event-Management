@@ -27,7 +27,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 pt-24 px-4">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 text-center">
         <h1 className="text-3xl font-bold text-blue-800 mb-4">
-          Welcome, {adminEmail} 👋
+          Welcome, {adminEmail}
         </h1>
         <p className="text-gray-600 text-lg mb-6">
           This is your admin dashboard. You can manage events and MCQs here.
