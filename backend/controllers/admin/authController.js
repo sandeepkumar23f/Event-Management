@@ -58,8 +58,8 @@ export const adminLogin = async (req, res) => {
             .send({ success: false, message: "Jwt eerror", error:JSON.stringify(error) });
         res.cookie("token", token, {
           httpOnly: true,
-          sameSite: "lax",
-          secure: false,
+          sameSite: "none",
+          secure: true,
           path: "/",
           expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
         });
